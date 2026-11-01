@@ -3,6 +3,8 @@
 <title>Australia Summer Run</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 /* Layout: signage header + plan switch, then Google map (sticky) beside a tabbed panel: itinerary, all activities, car list */
 :root {
@@ -46,21 +48,15 @@ button:focus-visible, a:focus-visible, .stop:focus-visible { outline: 2px solid 
 .legend i { display: inline-block; width: 22px; vertical-align: middle; margin-right: 6px; border-top: 3px solid; }
 .legend .lf { border-color: var(--flight); border-top-style: dashed; }
 .legend .lr { border-color: var(--road); }
-.map { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 78vh; border-radius: 14px; overflow: hidden; background: var(--ocean); border: 1px solid var(--line); }
-.map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
-.map.explore iframe { pointer-events: auto; }
-.map svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.map.explore svg { display: none; }
-.flight { fill: none; stroke: #1f5fa8; stroke-linecap: round; filter: drop-shadow(0 0 1.5px #fff); }
-.road { fill: none; stroke: #2f8a4e; stroke-linecap: round; filter: drop-shadow(0 0 1.5px #fff); }
-.pin { pointer-events: auto; cursor: pointer; }
-.pin .dot { fill: #fff; stroke: #14231f; }
-.pin .num { fill: #14231f; font-family: var(--mono); text-anchor: middle; dominant-baseline: central; }
-.pin .lbl { fill: #14231f; font-family: var(--body); font-weight: 600; paint-order: stroke; stroke: #fff; stroke-linejoin: round; }
-.pin .ring { fill: none; stroke: #d1602a; opacity: 0; }
-.pin.on .dot { fill: #d1602a; stroke: #d1602a; }
-.pin.on .num { fill: #fff; }
-.pin.on .ring { opacity: .45; }
+.map { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 78vh; border-radius: 14px; overflow: hidden; background: var(--ocean); border: 1px solid var(--line); z-index: 0; }
+.leaflet-container { font-family: var(--body); background: var(--ocean); }
+.pinwrap { display: flex; align-items: center; gap: 6px; white-space: nowrap; pointer-events: auto; }
+.pinwrap.l { flex-direction: row-reverse; }
+.pdot { min-width: 24px; height: 24px; padding: 0 5px; border-radius: 12px; background: #fff; border: 2px solid #14231f; color: #14231f; font: 500 11px var(--mono); display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.pin-on .pdot { background: #d1602a; border-color: #d1602a; color: #fff; box-shadow: 0 0 0 6px rgba(209,96,42,.3); }
+.plbl { font: 600 13px var(--body); color: #14231f; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+.pin-on { z-index: 1000 !important; }
+.far .pinwrap[data-c="byr"] .plbl, .far .pinwrap[data-c="bow"] .plbl { display: none; }
 .hint, .maplinks { font-size: 13px; color: var(--muted); }
 .maplinks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 a { color: var(--flight); text-underline-offset: 3px; }
@@ -136,12 +132,11 @@ a { color: var(--flight); text-underline-offset: 3px; }
           <button id="v-all" type="button">Whole trip</button>
           <button id="v-east" type="button">East coast</button>
           <button id="v-stop" type="button">Selected stop</button>
-          <button id="v-explore" type="button">Explore map</button>
         </div>
         <div class="legend"><span><i class="lf"></i>Flight</span><span><i class="lr"></i>Drive</span></div>
       </div>
-      <div class="map" id="mapbox"><iframe id="gframe" title="Google Map"></iframe><svg id="map" role="img" aria-label="Trip route drawn over Google Maps"></svg></div>
-      <div class="hint">Click a pin or a city to see everything on there. "Explore map" lets you pan and zoom (the route hides while you do).</div>
+      <div class="map" id="mapbox" role="region" aria-label="Trip map"></div>
+      <div class="hint">Drag and zoom freely. Click a pin or a city to see everything on there.</div>
       <div class="maplinks" id="maplinks"></div>
     </div>
 
@@ -258,7 +253,7 @@ const ACTS = [
 const NOT_FOUND = "No December 2026 events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
 
 /* ---------- state ---------- */
-let plan = "A", sel = 4, tab = "itin", view = "all", cat = "all", onlyIn = false, lastSrc = "";
+let plan = "A", sel = 4, tab = "itin", cat = "all", onlyIn = false;
 try { const s = JSON.parse(localStorage.getItem("trip-ui") || "{}"); if (s.plan in PLANS) plan = s.plan; if (s.tab) tab = s.tab; } catch (e) {}
 const save = () => { try { localStorage.setItem("trip-ui", JSON.stringify({ plan, tab })); } catch (e) {} };
 const stops = () => PLANS[plan].stops;
@@ -366,81 +361,68 @@ function carsHTML() {
 }
 
 /* ---------- map ---------- */
-const NS = "http://www.w3.org/2000/svg";
-const svg = document.getElementById("map"), box = document.getElementById("mapbox"), frame = document.getElementById("gframe");
-const MX = lon => (lon + 180) / 360;
-const MY = lat => { const s = Math.sin(lat * Math.PI / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
-const LAT = y => Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI;
+const box = document.getElementById("mapbox");
+let view = "all", layer = null;
+const lmap = L.map(box, { zoomControl: true, scrollWheelZoom: true, worldCopyJump: false }).setView([-30, 150], 5);
+const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "rastertiles/voyager"}/{z}/{x}/{y}{r}.png`, {
+  maxZoom: 19, subdomains: "abcd",
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(lmap);
+const farCheck = () => box.classList.toggle("far", lmap.getZoom() < 7);
+lmap.on("zoomend", farCheck);
 const BOUNDS = { all: [[-19.6, 146.0], [-43.2, 154.2]], east: [[-19.9, 148.0], [-35.0, 154.0]] };
-function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+const ll = c => [CITY[c].lat, CITY[c].lon];
 
-function camera(w, h) {
-  if (view === "stop") { const c = CITY[stops()[sel].c]; return { x: MX(c.lon), y: MY(c.lat), z: 11 }; }
-  const b = BOUNDS[view];
-  const x1 = MX(b[0][1]), x2 = MX(b[1][1]), y1 = MY(b[0][0]), y2 = MY(b[1][0]);
-  let z = 3;
-  for (let k = 3; k <= 12; k++) { const W = 256 * 2 ** k; if ((x2 - x1) * W <= w - 40 && (y2 - y1) * W <= h - 40) z = k; }
-  return { x: (x1 + x2) / 2, y: (y1 + y2) / 2, z };
+function arc(a, b) {
+  const [y1, x1] = a, [y2, x2] = b, dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1, bend = Math.min(0.22 * len, 4);
+  const cx = (x1 + x2) / 2 + dy / len * bend, cy = (y1 + y2) / 2 - dx / len * bend, pts = [];
+  for (let t = 0; t <= 1.0001; t += 0.05) pts.push([(1 - t) ** 2 * y1 + 2 * (1 - t) * t * cy + t * t * y2, (1 - t) ** 2 * x1 + 2 * (1 - t) * t * cx + t * t * x2]);
+  return pts;
 }
 
 function renderMap() {
-  const w = box.clientWidth, h = box.clientHeight, cam = camera(w, h), W = 256 * 2 ** cam.z;
-  const src = `https://maps.google.com/maps?ll=${LAT(cam.y).toFixed(5)},${(cam.x * 360 - 180).toFixed(5)}&z=${cam.z}&t=m&hl=en&output=embed`;
-  if (src !== lastSrc) { frame.src = src; lastSrc = src; }
-  const P = c => [(MX(CITY[c].lon) - cam.x) * W + w / 2, (MY(CITY[c].lat) - cam.y) * W + h / 2];
-  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-  svg.textContent = "";
+  if (layer) layer.remove();
+  layer = L.layerGroup().addTo(lmap);
   const S = stops();
+  const road = { color: "#2f8a4e", weight: 5, opacity: .9 }, fly = { color: "#1f5fa8", weight: 3, dashArray: "8 7", opacity: .9 };
   for (let i = 1; i < S.length; i++) {
-    const from = S[i - 1].c, to = S[i].c, mode = S[i].go[0];
-    const [x1, y1] = P(from), [x2, y2] = P(to);
-    if (mode === "fly") {
-      // Plan B Hobart leg: drive Bowral → Sydney, then fly from Sydney
+    const from = S[i - 1].c, to = S[i].c;
+    if (S[i].go[0] === "fly") {
       const ff = from === "bow" ? "syd" : from;
-      if (ff !== from) { const [sx, sy] = P("syd"); el("path", { class: "road", d: `M${x1},${y1} L${sx},${sy}`, "stroke-width": 4 }, svg); }
-      const [fx, fy] = P(ff);
-      const dx = x2 - fx, dy = y2 - fy, len = Math.hypot(dx, dy) || 1, bend = Math.min(0.22 * len, 60);
-      const cx = (fx + x2) / 2 - dy / len * bend, cy = (fy + y2) / 2 + dx / len * bend;
-      el("path", { class: "flight", d: `M${fx},${fy} Q${cx},${cy} ${x2},${y2}`, "stroke-width": 2.5, "stroke-dasharray": "7 5" }, svg);
-    } else {
-      el("path", { class: "road", d: `M${x1},${y1} L${x2},${y2}`, "stroke-width": 4 }, svg);
-    }
+      if (ff !== from) L.polyline([ll(from), ll("syd")], road).addTo(layer);
+      L.polyline(arc(ll(ff), ll(to)), fly).addTo(layer);
+    } else L.polyline([ll(from), ll(to)], road).addTo(layer);
   }
-  const drawn = {};
-  S.forEach((s, i) => { (drawn[s.c] = drawn[s.c] || []).push(i); });
-  Object.entries(drawn).forEach(([c, idx]) => {
-    const [x, y] = P(c);
-    if (x < -50 || y < -50 || x > w + 50 || y > h + 50) return;
-    const on = idx.includes(sel);
-    const g = el("g", { class: "pin" + (on ? " on" : "") }, svg);
-    el("circle", { class: "ring", cx: x, cy: y, r: 16, "stroke-width": 4 }, g);
-    el("circle", { class: "dot", cx: x, cy: y, r: 10, "stroke-width": 2 }, g);
-    el("text", { class: "num", x, y, "font-size": idx.length > 1 ? 8 : 11 }, g).textContent = idx.map(i => i + 1).join("·");
-    const crowded = view === "all" && (c === "byr" || c === "bow" || c === "ps");
-    if (!crowded) {
-      const left = CITY[c].lp === "l";
-      el("text", { class: "lbl", x: x + (left ? -15 : 15), y: y + 5, "font-size": 14, "text-anchor": left ? "end" : "start", "stroke-width": 4 }, g).textContent = CITY[c].name;
-    }
-    g.addEventListener("click", () => {
-      const next = idx.find(i => i !== sel);
-      select(idx.includes(sel) && next !== undefined ? next : idx[0], false);
-    });
+  const groups = {};
+  S.forEach((s, i) => (groups[s.c] = groups[s.c] || []).push(i));
+  Object.entries(groups).forEach(([c, idx]) => {
+    const on = idx.includes(sel), left = CITY[c].lp === "l";
+    const icon = L.divIcon({ className: on ? "pin-on" : "", iconSize: null, iconAnchor: [left ? 0 : 0, 12],
+      html: `<div class="pinwrap ${left ? "l" : ""}" data-c="${c}" style="transform:translateX(${left ? "calc(-100% + 12px)" : "-12px"})"><span class="pdot">${idx.map(i => i + 1).join("·")}</span><span class="plbl">${CITY[c].name}</span></div>` });
+    L.marker(ll(c), { icon, zIndexOffset: on ? 1000 : 0, title: CITY[c].name, keyboard: true }).addTo(layer)
+      .on("click", () => { const next = idx.find(i => i !== sel); select(idx.includes(sel) && next !== undefined ? next : idx[0], false); });
   });
-  const exploring = box.classList.contains("explore");
-  ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).setAttribute("aria-pressed", view === v && !exploring));
-  document.getElementById("v-explore").setAttribute("aria-pressed", exploring);
+  ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).setAttribute("aria-pressed", view === v));
   const c = CITY[S[sel].c];
   document.getElementById("maplinks").innerHTML =
     `<a href="https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lon}" target="_blank" rel="noopener">Open ${c.name} in Google Maps</a>
-     <a href="https://www.google.com/maps/dir/Noosa+Heads+QLD/Surfers+Paradise+QLD/Byron+Bay+NSW/Nelson+Bay+NSW/Sydney+NSW" target="_blank" rel="noopener">Road trip directions</a>`;
+     <a href="https://www.google.com/maps/dir/Noosa+Heads+QLD/Surfers+Paradise+QLD/Byron+Bay+NSW/Nelson+Bay+NSW/Sydney+NSW" target="_blank" rel="noopener">Road trip directions in Google Maps</a>`;
 }
+function moveCamera(animate) {
+  const opt = { animate, duration: .8, padding: [24, 24] };
+  if (view === "stop") lmap.flyTo(ll(stops()[sel].c), 11, { animate, duration: .8 });
+  else lmap.flyToBounds(BOUNDS[view], opt);
+}
+box.addEventListener("wheel", () => { view = "custom"; ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).setAttribute("aria-pressed", false)); }, { passive: true });
+lmap.on("dragstart", () => { view = "custom"; ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).setAttribute("aria-pressed", false)); });
 
 /* ---------- actions ---------- */
 function select(i, fromList) {
   sel = i;
-  box.classList.remove("explore");
   if (tab !== "itin") { tab = "itin"; save(); }
   renderPanel(); renderMap();
+  if (!fromList) { /* pin click: keep the map where the user put it */ } else if (view === "stop") moveCamera(true);
   const card = document.querySelector(`.stop[data-i="${i}"]`);
   if (card && !fromList) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
@@ -456,13 +438,13 @@ function setPlan(p) {
 document.getElementById("p-A").addEventListener("click", () => setPlan("A"));
 document.getElementById("p-B").addEventListener("click", () => setPlan("B"));
 ["itin", "all", "cars"].forEach(t => document.getElementById("t-" + t).addEventListener("click", () => { tab = t; save(); renderPanel(); }));
-const setView = v => { box.classList.remove("explore"); view = v; renderMap(); };
+const setView = v => { view = v; renderMap(); moveCamera(true); };
 ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).addEventListener("click", () => setView(v)));
-document.getElementById("v-explore").addEventListener("click", () => { box.classList.toggle("explore"); renderMap(); });
 document.getElementById("view").addEventListener("keydown", e => { const s = e.target.closest(".stop"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); s.click(); } });
-let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderMap, 150); });
+
 
 sel = stops().findIndex(s => s.c === "gc");
 renderAll();
+lmap.fitBounds(BOUNDS.all, { padding: [24, 24] });
 </script>
 </body></html>
