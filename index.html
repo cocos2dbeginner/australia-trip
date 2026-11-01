@@ -96,6 +96,10 @@ a { color: var(--flight); text-underline-offset: 3px; }
 .chip.out { color: var(--out); background: var(--out-bg); }
 .chip.any { color: var(--any); background: var(--any-bg); }
 .chip.cat { color: var(--muted); border: 1px solid var(--line); }
+.chip.link { color: var(--flight); border: 1px solid var(--line); text-decoration: none; }
+.chip.link:hover { border-color: var(--flight); }
+.item .t a { color: inherit; text-decoration-color: var(--line); }
+.item .t a:hover { color: var(--flight); }
 .chip.wish { color: var(--accent); border: 1px solid var(--accent); }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -144,7 +148,7 @@ a { color: var(--flight); text-underline-offset: 3px; }
       <div class="tabs" role="tablist">
         <button role="tab" id="t-itin" type="button">Itinerary</button>
         <button role="tab" id="t-all" type="button">All activities<span class="count" id="c-all"></span></button>
-        <button role="tab" id="t-cars" type="button">Car list<span class="count" id="c-cars"></span></button>
+        <button role="tab" id="t-cars" type="button">Cars &amp; track<span class="count" id="c-cars"></span></button>
       </div>
       <div id="view"></div>
     </div>
@@ -189,7 +193,7 @@ const PLANS = {
       { c: "syd", a: 20, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
 };
-const CATS = { cars: "Cars", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", out: "Outdoors", culture: "Food & culture" };
+const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", out: "Outdoors", culture: "Food & culture" };
 // days: list of December dates it happens (null = any day). wish: on the original wishlist. check: needs confirming.
 const ACTS = [
   // Sydney
@@ -199,6 +203,8 @@ const ACTS = [
   { id: "syd-shannons", c: "syd", cat: "cars", t: "Shannons Cars & Coffee, Sydney", n: "First Sunday of each month, 8–11am at the Shannons showroom. Check it runs in December.", days: [6], check: 1 },
   { id: "syd-forby", c: "syd", cat: "cars", t: "FORBYNATS 2: 4x4 show and drags", n: "Sydney Dragway, Eastern Creek. 4x4 and off-road crowd rather than a classic car show.", days: [5], check: 1 },
   { id: "syd-macchiato", c: "syd", cat: "cars", t: "Machines & Macchiatos meet", n: "Monthly meet on the Northern Beaches. December date not published yet.", days: null, check: 1 },
+  { id: "syd-drift", c: "syd", cat: "track", t: "Drift School intro + 2 hot laps, Sydney Motorsport Park", n: "Learn handbrake turns and donuts in a drift car, then ride with a pro. From $249; intermediate $449, masterclass $899.", days: null, q: "Drift School Australia Sydney Motorsport Park", url: "https://adrenaline.com.au/sydney/drifting/drift-school-introductory-hot-laps-sydney-dragway-eastern-creek" },
+  { id: "syd-v8", c: "syd", cat: "track", t: "Drive a V8 race car, Sydney Motorsport Park", n: "4–8 laps behind the wheel plus hot laps with a race driver. VIP 8-lap combo about $730.", days: null, q: "Sydney Motorsport Park Eastern Creek", url: "https://adrenaline.com.au/sydney/v8-experiences/vip-v8-race-car-8-lap-combo-eastern-creek" },
   { id: "syd-skydive", c: "syd", cat: "thrill", t: "Skydive Wollongong beach landing", n: "1½ h south of Sydney. Backup if the Airlie jump gets weathered out.", days: null },
   { id: "syd-bondi", c: "syd", cat: "out", t: "Bondi to Coogee walk + Icebergs", n: "Coastal walk, about 2 h one way.", days: null },
   { id: "syd-carols", c: "syd", cat: "culture", t: "Carols in the Domain", n: "Free, big outdoor concert with a fireworks finale. Gates 5pm, show 7:30pm.", days: [19] },
@@ -230,6 +236,9 @@ const ACTS = [
   { id: "gc-spilt", c: "gc", cat: "party", wish: 1, t: "Spilt Milk Gold Coast", n: "Gold Coast Sports Precinct, Carrara, 11:30am–10:30pm. Lewis Capaldi, RAYE, Baby Keem, DMA’S, KETTAMA, Remi Wolf. General sale was 31 Jul, so check resale if you don’t have tickets.", days: [13] },
   { id: "gc-parks", c: "gc", cat: "theme", wish: 1, t: "Movie World, Dreamworld or Wet’n’Wild", n: "A multi-park pass is cheaper if you do two.", days: null },
   { id: "gc-dirt", c: "gc", cat: "thrill", wish: 1, t: "Hinterland dirt-bike / trail-bike tour", n: "Guided half-day trail rides in the hinterland; bikes and gear supplied.", days: null },
+  { id: "gc-porschetrack", c: "gc", cat: "track", t: "Porsche Track Experience / advanced driver training", n: "Australia has no Porsche Experience Centre; this is the closest thing. Full-day courses in Porsches for owners and non-owners, at RACQ Mt Cotton (40 min from the Gold Coast) or Queensland Raceway. Gold Coast session listed at $1,613. Dates are set by Porsche, so ask about December.", days: null, check: 1, q: "RACQ Mobility Centre of Excellence Mount Cotton", url: "https://dealer.porsche.com/au/goldcoast/en-AU/Advanced-Driver-Training" },
+  { id: "gc-drift", c: "gc", cat: "track", t: "Learn to drift, Queensland Raceway", n: "Half day $399–449 or full day $619–699 with pro drift drivers, ending on a driftkhana course. Ipswich, about 1¼ h from the Gold Coast.", days: null, q: "Queensland Raceway Willowbank", url: "https://www.adrenaline.com.au/brisbane/drifting/learn-to-drift-queensland-raceway/" },
+  { id: "gc-v8", c: "gc", cat: "track", t: "Drive a V8 race car, Queensland Raceway", n: "5 laps in a Ford or Holden with an instructor, about $240–270.", days: null, q: "Queensland Raceway Willowbank", url: "https://memberbenefits.experienceoz.com.au/en/qld-other/v8-race-car-driving-experience-5-laps" },
   { id: "gc-kart", c: "gc", cat: "thrill", t: "Kingston Park Raceway outdoor karts", n: "Fast outdoor karts, 30 min north of Surfers.", days: null },
   { id: "gc-jet", c: "gc", cat: "thrill", t: "Jet boat + parasail on the Broadwater", n: "", days: null },
   { id: "gc-clubs", c: "gc", cat: "party", wish: 1, t: "Surfers Paradise clubs (Orchid Ave)", n: "", days: null },
@@ -250,7 +259,8 @@ const ACTS = [
   { id: "ps-carshow", c: "ps", cat: "cars", t: "Maddie Hill Car, Truck & Bike Show (10th year)", n: "Newcastle Kart Racing Club, 45 min from Nelson Bay. Charity show.", days: [13], check: 1 },
   { id: "ps-hunter", c: "ps", cat: "culture", t: "Hunter Valley wine day", n: "1 h inland.", days: null },
 ];
-const NOT_FOUND = "No December 2026 events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
+const QMAP = {"syd-harbour": "BridgeClimb Sydney", "syd-clubs": "Ivy Pool Club Sydney", "syd-mos": "The Domain Sydney", "syd-shannons": "Shannons Sydney Silverwater", "syd-forby": "Sydney Dragway", "syd-macchiato": "Northern Beaches Sydney", "syd-skydive": "Skydive Sydney Wollongong", "syd-bondi": "Bondi to Coogee Coastal Walk", "syd-carols": "The Domain Sydney", "bow-porsche": "Peppers Craigieburn Bowral", "bow-bathurst": "Mount Panorama Circuit Bathurst", "bow-falls": "Fitzroy Falls", "hob-mona": "MONA Museum of Old and New Art", "hob-salamanca": "Salamanca Market Hobart", "hob-kunanyi": "kunanyi Mount Wellington Descent bike", "hob-bruny": "Bruny Island", "hob-carshow": "King Street Oval Campbell Town Tasmania", "hob-taste": "Princes Wharf 1 Hobart", "air-sail": "Whitehaven Beach", "air-skydive": "Skydive Airlie Beach", "air-heart": "Heart Reef scenic flight Airlie Beach", "air-jetski": "Whitsunday Jetski Tours Airlie Beach", "air-markets": "Airlie Beach Markets", "air-bars": "Airlie Beach Esplanade bars", "noo-kart": "Big Kart Track Landsborough", "noo-kgari": "Kgari Fraser Island", "noo-zoo": "Australia Zoo", "noo-np": "Noosa National Park", "noo-market": "Pomona Queensland", "gc-spilt": "Gold Coast Sports Precinct Carrara", "gc-parks": "Warner Bros. Movie World", "gc-dirt": "dirt bike tours Gold Coast hinterland", "gc-kart": "Kingston Park Raceway", "gc-jet": "Paradise Jet Boating Gold Coast", "gc-clubs": "Orchid Avenue Surfers Paradise", "gc-porsche": "Porsche Centre Gold Coast", "gc-jcc": "Cafe Elle Geebung", "gc-shannons": "Shannons Brisbane Eagle Farm", "byr-surf": "Cape Byron Lighthouse", "byr-beachhotel": "Beach Hotel Byron Bay", "byr-dizzee": "Beach Hotel Byron Bay", "byr-skydive": "Skydive Byron Bay", "byr-market": "Byron Bay Community Market", "byr-kayak": "Go Sea Kayak Byron Bay", "ps-buggy": "Stockton Beach Sand Dunes quad bike tours", "ps-sandboard": "Sand Dune Adventures Port Stephens", "ps-dolphins": "Nelson Bay dolphin watching cruise", "ps-carshow": "Newcastle Kart Racing Club", "ps-hunter": "Hunter Valley wineries Pokolbin"};
+const NOT_FOUND = "No December 2026 race events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
 
 /* ---------- state ---------- */
 let plan = "A", sel = 4, tab = "itin", cat = "all", onlyIn = false;
@@ -272,10 +282,12 @@ function status(act) {
 
 function itemHTML(a, showCity) {
   const st = status(a);
-  return `<div class="item"><span class="t">${esc(a.t)}${showCity ? ` <span class="when">· ${CITY[a.c].name}</span>` : ""}</span>
+  const q = a.q || QMAP[a.id] || `${a.t}, ${CITY[a.c].name}`;
+  const gm = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  return `<div class="item"><span class="t"><a href="${gm}" target="_blank" rel="noopener" title="Open in Google Maps (reviews, photos)">${esc(a.t)}</a>${showCity ? ` <span class="when">· ${CITY[a.c].name}</span>` : ""}</span>
     <span class="meta"><span class="chip ${st.k}">${st.txt}</span></span>
     <span class="n">${esc(a.n)}${a.check ? " <em>Confirm before booking.</em>" : ""}</span>
-    <span class="meta" style="grid-column:1/-1;justify-content:start"><span class="chip cat">${CATS[a.cat]}</span>${a.wish ? '<span class="chip wish">wishlist</span>' : ""}</span></div>`;
+    <span class="meta" style="grid-column:1/-1;justify-content:start"><span class="chip cat">${CATS[a.cat]}</span>${a.wish ? '<span class="chip wish">wishlist</span>' : ""}<a class="chip link" href="${gm}" target="_blank" rel="noopener">Google Maps ↗</a>${a.url ? `<a class="chip link" href="${a.url}" target="_blank" rel="noopener">Book ↗</a>` : ""}</span></div>`;
 }
 
 /* ---------- header ---------- */
@@ -294,7 +306,7 @@ function renderHeader() {
 function renderPanel() {
   ["itin", "all", "cars"].forEach(t => document.getElementById("t-" + t).setAttribute("aria-selected", tab === t));
   document.getElementById("c-all").textContent = ACTS.length;
-  document.getElementById("c-cars").textContent = ACTS.filter(a => a.cat === "cars").length;
+  document.getElementById("c-cars").textContent = ACTS.filter(a => a.cat === "cars" || a.cat === "track").length;
   const v = document.getElementById("view");
   if (tab === "itin") v.innerHTML = itinHTML();
   else if (tab === "all") v.innerHTML = allHTML();
@@ -353,9 +365,9 @@ function allHTML() {
 }
 
 function carsHTML() {
-  const list = ACTS.filter(a => a.cat === "cars").sort((x, y) => (x.days ? x.days[0] : 99) - (y.days ? y.days[0] : 99));
+  const list = ACTS.filter(a => a.cat === "cars" || a.cat === "track").sort((x, y) => (x.days ? x.days[0] : 99) - (y.days ? y.days[0] : 99));
   return `<div class="list">
-    <div class="callout"><b>Parking-lot list.</b> Car shows and meets found along or near the route. None of them is worth bending the whole trip for, but a few line up with our dates. The Porsche Club party is the one Plan B is built around: email <span class="email">social@pcnsw.com.au</span> to check whether non-members can come.</div>
+    <div class="callout"><b>Parking-lot list.</b> Race-car drives, drift schools and car shows along or near the route. Track experiences run on most days, so they can slot in anywhere; the shows and meets are date-bound. None of them is worth bending the whole trip for, but a few line up with our dates. The Porsche Club party is the one Plan B is built around: email <span class="email">social@pcnsw.com.au</span> to check whether non-members can come.</div>
     <div class="group">${list.map(a => itemHTML(a, true)).join("")}</div>
     <div class="callout">${NOT_FOUND}</div></div>`;
 }
@@ -364,10 +376,9 @@ function carsHTML() {
 const box = document.getElementById("mapbox");
 let view = "all", layer = null;
 const lmap = L.map(box, { zoomControl: true, scrollWheelZoom: true, worldCopyJump: false }).setView([-30, 150], 5);
-const dark = matchMedia("(prefers-color-scheme: dark)").matches;
-L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "rastertiles/voyager"}/{z}/{x}/{y}{r}.png`, {
-  maxZoom: 19, subdomains: "abcd",
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(lmap);
 const farCheck = () => box.classList.toggle("far", lmap.getZoom() < 7);
 lmap.on("zoomend", farCheck);
