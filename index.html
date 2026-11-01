@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Australia Summer Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: signage-style header, then map + day-by-day list side by side (stacked on phones), then wishlist and bookings */
+:root {
+  --bg: #f3f6f4;
+  --surface: #ffffff;
+  --fg: #14231f;
+  --muted: #5b6c66;
+  --line: #d6dfdb;
+  --ocean: #d3e7ee;
+  --land: #ece3cf;
+  --land-edge: #c9b993;
+  --flight: #1f5fa8;
+  --road: #2f8a4e;
+  --accent: #d1602a;
+  --accent-ink: #ffffff;
+  --halo: #ffffff;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1716; --surface: #142220; --fg: #e4ece9; --muted: #93a6a0; --line: #263935;
+    --ocean: #0f2a35; --land: #2a2a22; --land-edge: #4d4734; --flight: #6aa8f0; --road: #5cc27d;
+    --accent: #f08a52; --accent-ink: #1a0c04; --halo: #142220; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1716; --surface: #142220; --fg: #e4ece9; --muted: #93a6a0; --line: #263935;
+  --ocean: #0f2a35; --land: #2a2a22; --land-edge: #4d4734; --flight: #6aa8f0; --road: #5cc27d;
+  --accent: #f08a52; --accent-ink: #1a0c04; --halo: #142220; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 7vw, 72px); line-height: .95; margin: 0; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.facts b { font-family: var(--display); font-size: 22px; font-weight: 800; margin-right: 4px; }
+.facts div { color: var(--muted); }
+.facts div b { color: var(--fg); }
+h2 { font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase; margin: 0; letter-spacing: .02em; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.mapcard { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 10px; }
+@media (max-width: 860px) { .mapcard { position: static; } }
+.mapbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.seg button { font: 600 13px var(--body); border: 0; background: transparent; color: var(--muted); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.seg button:focus-visible, .stop:focus-visible, a:focus-visible, input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 22px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 3px solid; }
+.legend .lf { border-color: var(--flight); border-top-style: dashed; }
+.legend .lr { border-color: var(--road); }
+.map { width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: var(--ocean); border: 1px solid var(--line); }
+.map { position: relative; }
+.map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+.map.explore iframe { pointer-events: auto; }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.map.explore svg { display: none; }
+.pin { pointer-events: auto; }
+.flight { filter: drop-shadow(0 0 1.5px #fff); }
+.road { filter: drop-shadow(0 0 1.5px #fff); }
+.hint { font-size: 12px; color: var(--muted); }
+.land { fill: var(--land); stroke: var(--land-edge); stroke-linejoin: round; }
+.flight { fill: none; stroke: var(--flight); stroke-linecap: round; }
+.road { fill: none; stroke: var(--road); stroke-linecap: round; stroke-linejoin: round; }
+.pin circle.dot { fill: #ffffff; stroke: #14231f; }
+.pin text.num { fill: #14231f; font-family: var(--mono); font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+.pin text.lbl { fill: #14231f; stroke: #ffffff !important; font-family: var(--body); font-weight: 600; paint-order: stroke; stroke: var(--halo); stroke-linejoin: round; }
+.pin { cursor: pointer; }
+.pin.on circle.dot { fill: var(--accent); stroke: var(--accent); }
+.pin.on text.num { fill: var(--accent-ink); }
+.pin circle.ring { fill: none; stroke: var(--accent); opacity: 0; }
+.pin.on circle.ring { opacity: .45; }
+.maplinks { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; }
+a { color: var(--flight); text-underline-offset: 3px; }
+
+.list { display: grid; gap: 10px; }
+.stop { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 4px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; text-align: left; color: inherit; font: inherit; width: 100%; }
+.stop.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.badge { grid-row: span 3; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--fg); display: grid; place-items: center; font-family: var(--mono); font-size: 14px; }
+.stop.on .badge { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.stop .top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.stop h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 24px; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+.when { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stop ul { margin: 0; padding-left: 18px; }
+.stop li { margin: 1px 0; }
+.travel { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: baseline; }
+.travel .mode { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; color: var(--surface); white-space: nowrap; }
+.mode.fly { background: var(--flight); }
+.mode.drive { background: var(--road); }
+.mode.land { background: var(--muted); }
+.key { color: var(--accent); font-weight: 600; }
+
+.lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 760px) { .lower { grid-template-columns: minmax(0, 1fr); } }
+.panel { display: grid; gap: 12px; align-content: start; }
+.checks { display: grid; gap: 6px; }
+.check { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.check input { position: absolute; opacity: 0; pointer-events: none; }
+.check .box { width: 20px; height: 20px; border: 2px solid var(--fg); border-radius: 5px; display: grid; place-items: center; }
+.check input:checked + .box { background: var(--road); border-color: var(--road); }
+.check input:checked + .box::after { content: ""; width: 9px; height: 5px; border-left: 2px solid var(--surface); border-bottom: 2px solid var(--surface); transform: rotate(-45deg) translate(1px, -1px); }
+.check input:checked ~ .txt { color: var(--muted); text-decoration: line-through; }
+.where { font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; }
+.note { font-size: 13px; color: var(--muted); max-width: 65ch; }
+.email { font-family: var(--mono); font-size: 13px; user-select: all; background: var(--surface); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; }
+@media (prefers-reduced-motion: no-preference) { .map svg { transition: none; } }
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">2–22 December 2026 · in and out of Sydney</div>
+    <h1>Australia <span>Summer Run</span></h1>
+    <div class="facts">
+      <div><b>20</b>nights</div>
+      <div><b>9</b>places</div>
+      <div><b>5</b>flights</div>
+      <div><b>~1,040</b>km coastal drive</div>
+      <div><b>13 Dec</b>Spilt Milk, Gold Coast</div>
+    </div>
+  </header>
+
+  <section class="main">
+    <div class="mapcard">
+      <div class="mapbar">
+        <div class="seg" role="group" aria-label="Map view">
+          <button id="v-all" type="button" aria-pressed="true">Whole trip</button>
+          <button id="v-east" type="button" aria-pressed="false">East coast</button>
+          <button id="v-stop" type="button" aria-pressed="false">Selected stop</button>
+          <button id="v-explore" type="button" aria-pressed="false">Explore map</button>
+        </div>
+        <div class="legend"><span><i class="lf"></i>Flight</span><span><i class="lr"></i>Drive</span></div>
+      </div>
+      <div class="map" id="mapbox"><iframe id="gframe" title="Google Map" loading="eager" referrerpolicy="no-referrer-when-downgrade"></iframe><svg id="map" role="img" aria-label="Trip route drawn over Google Maps"></svg></div>
+      <div class="hint">Route lines sit on top of Google Maps. Use "Explore map" to pan and zoom freely (the route overlay hides while you do).</div>
+      <div class="maplinks" id="maplinks"></div>
+    </div>
+
+    <div class="list" id="list"></div>
+  </section>
+
+  <section class="lower">
+    <div class="panel">
+      <h2>Wishlist</h2>
+      <div class="checks" id="wish"></div>
+    </div>
+    <div class="panel">
+      <h2>Book soon</h2>
+      <div class="checks" id="book"></div>
+      <p class="note">December is peak season. For the Porsche Club party, email <span class="email">social@pcnsw.com.au</span> first to check whether non-members can come. Ticks are saved in this browser only.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const STOPS = [
+  { id: 1, name: "Sydney", lat: -33.87, lon: 151.21, when: "Wed 2 – Fri 4 Dec", nights: 2, full: true, lp: "r",
+    travel: ["land", "Arrive SYD 2 Dec"],
+    acts: ["Settle in, harbour and Bondi", "Sydney Motorsport Park karting if you get the itch early"] },
+  { id: 2, name: "Melbourne", lat: -37.81, lon: 144.96, when: "Fri 4 – Sun 6 Dec", nights: 2, full: true, lp: "l",
+    travel: ["fly", "SYD → MEL, Fri 4 Dec"],
+    acts: ["<span class='key'>Bangers & Mash drag racing</span>, Sat 5 Dec", "Chapel St nightlife"] },
+  { id: 3, name: "Bowral", lat: -34.48, lon: 150.42, when: "Sun 6 – Mon 7 Dec", nights: 1, full: false, lp: "l",
+    travel: ["fly", "MEL → SYD Sun 6 Dec, then 1½ h drive"],
+    acts: ["<span class='key'>Porsche Club NSW end-of-year party</span>, Peppers Craigieburn, $125 pp (check membership)"] },
+  { id: 4, name: "Hobart", lat: -42.88, lon: 147.33, when: "Mon 7 – Wed 9 Dec", nights: 2, full: true, lp: "r",
+    travel: ["fly", "Drive back to SYD, fly SYD → HBA Mon 7 Dec"],
+    acts: ["MONA by ferry", "Salamanca Place", "kunanyi / Mt Wellington summit"] },
+  { id: 5, name: "Airlie Beach", lat: -20.27, lon: 148.72, when: "Wed 9 – Sat 12 Dec", nights: 3, full: true, lp: "l",
+    travel: ["fly", "HBA → Proserpine (PPP), Wed 9 Dec, one connection"],
+    acts: ["<span class='key'>Skydive</span> onto the beach", "Whitsunday Islands National Park sail: Whitehaven Beach and Hill Inlet", "Airlie bar strip"] },
+  { id: 6, name: "Noosa", lat: -26.39, lon: 153.09, when: "Sat 12 – Sun 13 Dec", nights: 1, full: true, lp: "l",
+    travel: ["fly", "PPP → Sunshine Coast, Sat 12 Dec (or via Brisbane). Pick up one-way rental"],
+    acts: ["<span class='key'>Big Kart Track</span>, Landsborough", "Noosa Heads beach"] },
+  { id: 7, name: "Gold Coast", lat: -28.00, lon: 153.43, when: "Sun 13 – Wed 16 Dec", nights: 3, full: true, lp: "r",
+    travel: ["drive", "Noosa → Gold Coast, about 2 h"],
+    acts: ["<span class='key'>Spilt Milk festival</span>, Sun 13 Dec, Carrara", "Movie World or Dreamworld", "Hinterland trail and dirt-bike tour", "Surfers Paradise nightlife"] },
+  { id: 8, name: "Byron Bay", lat: -28.64, lon: 153.61, when: "Wed 16 – Fri 18 Dec", nights: 2, full: false, lp: "r",
+    travel: ["drive", "Gold Coast → Byron, about 1 h"],
+    acts: ["Cape Byron lighthouse walk", "Beach days and Byron bars"] },
+  { id: 9, name: "Port Stephens", lat: -32.72, lon: 152.11, when: "Fri 18 – Sun 20 Dec", nights: 2, full: false, lp: "r",
+    travel: ["drive", "Byron → Port Stephens, about 6½ h"],
+    acts: ["<span class='key'>Stockton Beach dune buggy and quad bikes</span>", "Sandboarding on the dunes"] },
+  { id: 10, name: "Sydney", lat: -33.87, lon: 151.21, when: "Sun 20 – Tue 22 Dec", nights: 2, full: false, lp: "r", same: 1,
+    travel: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"],
+    acts: ["Kings Cross and Darling Harbour clubs", "Fly home Tue 22 Dec"] },
+];
+
+const LEGS = [
+  ["fly", 1, 2], ["fly", 2, 1], ["drive", 1, 3], ["drive", 3, 1], ["fly", 1, 4], ["fly", 4, 5], ["fly", 5, 6],
+  ["drive", 6, 7], ["drive", 7, 8], ["drive", 8, 9], ["drive", 9, 10],
+];
+
+const WISH = [
+  ["Tasmania", "Hobart"], ["Whitsunday Islands National Park", "Airlie Beach"], ["Kart racing", "Noosa"],
+  ["Skydiving", "Airlie Beach"], ["Trials / dirt bikes", "Gold Coast"], ["Sand buggy", "Port Stephens"],
+  ["Theme parks", "Gold Coast"], ["Festival", "Gold Coast"], ["Party venues", "Melb · GC · Syd"],
+  ["Car event", "Melb · Bowral"],
+];
+const BOOK = [
+  ["Spilt Milk Gold Coast tickets", "13 Dec"], ["Email Porsche Club NSW", "6 Dec"], ["Whitsundays sail (Whitehaven + Hill Inlet)", "10–11 Dec"],
+  ["Airlie Beach skydive", "9–11 Dec"], ["Flights: SYD–MEL–SYD, SYD–HBA, HBA–PPP, PPP–MCY", "4–12 Dec"],
+  ["One-way rental, Sunshine Coast → Sydney", "12–20 Dec"], ["Stockton dune buggy tour", "19 Dec"],
+  ["Bangers & Mash drag racing tickets", "5 Dec"],
+];
+
+
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("map");
+const box = document.getElementById("mapbox");
+const frame = document.getElementById("gframe");
+let view = "all", sel = 7, cam = null, lastSrc = "";
+
+const MX = lon => (lon + 180) / 360;
+const MY = lat => { const s = Math.sin(lat * Math.PI / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
+const LAT = y => Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI;
+const BOUNDS = { all: [[-19.6, 144.4], [-43.2, 154.2]], east: [[-19.9, 148.0], [-34.8, 154.0]] };
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const byId = id => STOPS.find(s => s.id === id);
+const pinId = s => s.same || s.id;
+
+function camera() {
+  const w = box.clientWidth, h = box.clientHeight;
+  if (view === "stop") { const st = byId(sel); return { x: MX(st.lon), y: MY(st.lat), z: 11 }; }
+  const b = BOUNDS[view === "east" ? "east" : "all"];
+  const x1 = MX(b[0][1]), x2 = MX(b[1][1]), y1 = MY(b[0][0]), y2 = MY(b[1][0]);
+  let z = 3;
+  for (let k = 3; k <= 12; k++) { const W = 256 * 2 ** k; if ((x2 - x1) * W <= w - 40 && (y2 - y1) * W <= h - 40) z = k; }
+  return { x: (x1 + x2) / 2, y: (y1 + y2) / 2, z };
+}
+
+function render() {
+  const w = box.clientWidth, h = box.clientHeight;
+  cam = camera();
+  const W = 256 * 2 ** cam.z;
+  const lat = LAT(cam.y).toFixed(5), lon = (cam.x * 360 - 180).toFixed(5);
+  const srcUrl = `https://maps.google.com/maps?ll=${lat},${lon}&z=${cam.z}&t=m&hl=en&output=embed`;
+  if (srcUrl !== lastSrc) { frame.src = srcUrl; lastSrc = srcUrl; }
+  const P = (lo, la) => [(MX(lo) - cam.x) * W + w / 2, (MY(la) - cam.y) * W + h / 2];
+
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.textContent = "";
+  LEGS.forEach(([mode, a, b]) => {
+    const [x1, y1] = P(byId(a).lon, byId(a).lat), [x2, y2] = P(byId(b).lon, byId(b).lat);
+    if (mode === "fly") {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1;
+      const len = Math.hypot(dx, dy) || 1, bend = Math.min(0.22 * len, 60);
+      const cx = mx - dy / len * bend, cy = my + dx / len * bend;
+      el("path", { class: "flight", d: `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`, "stroke-width": 2.5, "stroke-dasharray": "7 5" }, svg);
+    } else {
+      el("path", { class: "road", d: `M${x1},${y1} L${x2},${y2}`, "stroke-width": 4 }, svg);
+    }
+  });
+  const showLabel = st => view === "all" ? st.full : true;
+  STOPS.filter(st => !st.same).forEach(st => {
+    const [x, y] = P(st.lon, st.lat);
+    if (x < -50 || y < -50 || x > w + 50 || y > h + 50) return;
+    const on = pinId(byId(sel)) === st.id;
+    const g = el("g", { class: "pin" + (on ? " on" : "") }, svg);
+    el("circle", { class: "ring", cx: x, cy: y, r: 16, "stroke-width": 4 }, g);
+    el("circle", { class: "dot", cx: x, cy: y, r: 10, "stroke-width": 2 }, g);
+    const num = el("text", { class: "num", x, y, "font-size": st.id === 1 ? 8 : 11 }, g);
+    num.textContent = st.id === 1 ? "1·10" : st.id;
+    if (showLabel(st)) {
+      const left = st.lp === "l";
+      const t = el("text", { class: "lbl", x: x + (left ? -15 : 15), y: y + 5, "font-size": 14, "text-anchor": left ? "end" : "start", "stroke-width": 4 }, g);
+      t.textContent = st.name;
+    }
+    g.addEventListener("click", () => select(st.id));
+  });
+  ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).setAttribute("aria-pressed", view === v && !box.classList.contains("explore")));
+  document.getElementById("v-explore").setAttribute("aria-pressed", box.classList.contains("explore"));
+}
+
+function select(id, fromList) {
+  sel = id;
+  const st = byId(id);
+  box.classList.remove("explore");
+  if (fromList) view = "stop";
+  document.querySelectorAll(".stop").forEach(b => b.classList.toggle("on", +b.dataset.id === id));
+  if (!fromList) document.querySelector(`.stop[data-id="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  render();
+  const q = `${st.lat},${st.lon}`;
+  document.getElementById("maplinks").innerHTML =
+    `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Open ${st.name} in Google Maps</a>
+     <a href="https://www.google.com/maps/dir/Noosa+Heads+QLD/Surfers+Paradise+QLD/Byron+Bay+NSW/Nelson+Bay+NSW/Sydney+NSW" target="_blank" rel="noopener">Road trip directions</a>`;
+}
+
+function buildList() {
+  const list = document.getElementById("list");
+  STOPS.forEach(st => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "stop"; b.dataset.id = st.id;
+    const label = { fly: "Fly", drive: "Drive", land: "Arrive" }[st.travel[0]];
+    b.innerHTML = `<div class="badge">${st.id}</div>
+      <div class="top"><h3>${st.name}</h3><span class="when">${st.when} · ${st.nights} night${st.nights > 1 ? "s" : ""}</span></div>
+      <div class="travel"><span class="mode ${st.travel[0]}">${label}</span><span>${st.travel[1]}</span></div>
+      <ul>${st.acts.map(a => `<li>${a}</li>`).join("")}</ul>`;
+    b.addEventListener("click", () => select(st.id, true));
+    list.appendChild(b);
+  });
+}
+
+function select(id, fromList) {
+  sel = id;
+  const st = byId(id);
+  if (st.lat < -36 || st.lon < 145) view = "all";
+  else if (fromList && view === "all" && !st.full) view = "east";
+  document.querySelectorAll(".stop").forEach(b => b.classList.toggle("on", +b.dataset.id === id));
+  if (!fromList) document.querySelector(`.stop[data-id="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  render();
+  const q = `${st.lat},${st.lon}`;
+  document.getElementById("maplinks").innerHTML =
+    `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Open ${st.name} in Google Maps</a>
+     <a href="https://www.google.com/maps/dir/Noosa+Heads+QLD/Surfers+Paradise+QLD/Byron+Bay+NSW/Nelson+Bay+NSW/Sydney+NSW" target="_blank" rel="noopener">Road trip directions</a>`;
+}
+
+function checklist(boxId, items, key) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) {}
+  const box = document.getElementById(boxId);
+  items.forEach(([txt, where], i) => {
+    const id = `${key}-${i}`;
+    const lab = document.createElement("label");
+    lab.className = "check";
+    lab.innerHTML = `<input type="checkbox" id="${id}" ${saved[i] ? "checked" : ""}><span class="box"></span><span class="txt">${txt}</span><span class="where">${where}</span>`;
+    lab.querySelector("input").addEventListener("change", e => {
+      saved[i] = e.target.checked;
+      try { localStorage.setItem(key, JSON.stringify(saved)); } catch (err) {}
+    });
+    box.appendChild(lab);
+  });
+}
+
+const setView = v => { box.classList.remove("explore"); view = v; render(); };
+document.getElementById("v-all").addEventListener("click", () => setView("all"));
+document.getElementById("v-east").addEventListener("click", () => setView("east"));
+document.getElementById("v-stop").addEventListener("click", () => setView("stop"));
+document.getElementById("v-explore").addEventListener("click", () => { box.classList.toggle("explore"); render(); });
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+buildList();
+checklist("wish", WISH, "wish");
+checklist("book", BOOK, "book");
+select(7, false);
+view = "all"; render();
+scrollTo(0, 0);
+</script>
+</body></html>
