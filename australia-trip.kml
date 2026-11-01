@@ -7,10 +7,10 @@
   <Style id="flight"><LineStyle><color>ffa85f1f</color><width>3</width></LineStyle></Style>
   <Style id="road"><LineStyle><color>ff4e8a2f</color><width>5</width></LineStyle></Style>
   <Folder><name>Stops</name>
-    <Placemark><name>1. Sydney (2–5 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Arrive 2 Dec. Main: harbour day, BridgeClimb + Manly ferry.</description><Point><coordinates>151.21,-33.87,0</coordinates></Point></Placemark>
-    <Placemark><name>2. Hobart (5–7 Dec, 2 nights)</name><styleUrl>#stop</styleUrl><description>Main: MONA. Also Salamanca Market (Sat 5 Dec), kunanyi bike descent, Bruny Island.</description><Point><coordinates>147.33,-42.88,0</coordinates></Point></Placemark>
-    <Placemark><name>3. Airlie Beach (7–10 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Main: Whitsundays sail to Whitehaven + Hill Inlet. Skydive, Heart Reef flight, jet ski.</description><Point><coordinates>148.72,-20.27,0</coordinates></Point></Placemark>
-    <Placemark><name>4. Noosa (10–12 Dec, 2 nights)</name><styleUrl>#stop</styleUrl><description>Main: Big Kart Track. Also K'gari 4WD day, Australia Zoo.</description><Point><coordinates>153.09,-26.39,0</coordinates></Point></Placemark>
+    <Placemark><name>1. Sydney (2–3 Dec, 1 night)</name><styleUrl>#stop</styleUrl><description>Arrive 2 Dec. Main: harbour day, BridgeClimb + Manly ferry.</description><Point><coordinates>151.21,-33.87,0</coordinates></Point></Placemark>
+    <Placemark><name>2. Hobart (3–6 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Main: MONA. Also Salamanca Market (Sat 5 Dec), kunanyi bike descent, Bruny Island.</description><Point><coordinates>147.33,-42.88,0</coordinates></Point></Placemark>
+    <Placemark><name>3. Airlie Beach (6–9 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Main: Whitsundays sail to Whitehaven + Hill Inlet. Skydive, Heart Reef flight, jet ski.</description><Point><coordinates>148.72,-20.27,0</coordinates></Point></Placemark>
+    <Placemark><name>4. Noosa (9–12 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Main: Big Kart Track. Also K'gari 4WD day, Australia Zoo.</description><Point><coordinates>153.09,-26.39,0</coordinates></Point></Placemark>
     <Placemark><name>5. Gold Coast (12–15 Dec, 3 nights)</name><styleUrl>#stop</styleUrl><description>Main: Spilt Milk Sun 13 Dec, Carrara. Theme parks, dirt-bike tour, Kingston Park karts, Surfers clubs.</description><Point><coordinates>153.43,-28.0,0</coordinates></Point></Placemark>
     <Placemark><name>6. Byron Bay (15–17 Dec, 2 nights)</name><styleUrl>#stop</styleUrl><description>Main: surf lesson + Cape Byron walk. Skydive Byron, Beach Hotel.</description><Point><coordinates>153.61,-28.64,0</coordinates></Point></Placemark>
     <Placemark><name>7. Port Stephens (17–19 Dec, 2 nights)</name><styleUrl>#stop</styleUrl><description>Main: Stockton Beach dune buggy / quads. Sandboarding, dolphin cruise.</description><Point><coordinates>152.11,-32.72,0</coordinates></Point></Placemark>
@@ -24,9 +24,9 @@
     <Placemark><name>Maddie Hill Car, Truck &amp; Bike Show</name><styleUrl>#car</styleUrl><description>Sun 13 Dec, Newcastle Kart Racing Club. Confirm.</description><Point><coordinates>151.68,-32.86,0</coordinates></Point></Placemark>
   </Folder>
   <Folder><name>Route</name>
-    <Placemark><name>SYD → HBA, 5 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>151.21,-33.87,0 147.33,-42.88,0</coordinates></LineString></Placemark>
-    <Placemark><name>HBA → PPP, 7 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>147.33,-42.88,0 148.72,-20.27,0</coordinates></LineString></Placemark>
-    <Placemark><name>PPP → Sunshine Coast/Brisbane, 10 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>148.72,-20.27,0 153.09,-26.39,0</coordinates></LineString></Placemark>
+    <Placemark><name>SYD → HBA, 3 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>151.21,-33.87,0 147.33,-42.88,0</coordinates></LineString></Placemark>
+    <Placemark><name>HBA → PPP, 6 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>147.33,-42.88,0 148.72,-20.27,0</coordinates></LineString></Placemark>
+    <Placemark><name>PPP → Sunshine Coast/Brisbane, 9 Dec</name><styleUrl>#flight</styleUrl><LineString><tessellate>1</tessellate><coordinates>148.72,-20.27,0 153.09,-26.39,0</coordinates></LineString></Placemark>
     <Placemark><name>Coastal road trip, 12–19 Dec</name><styleUrl>#road</styleUrl><LineString><tessellate>1</tessellate><coordinates>153.09,-26.39,0 153.43,-28.0,0 153.61,-28.64,0 152.11,-32.72,0 151.21,-33.87,0</coordinates></LineString></Placemark>
   </Folder>
 </Document>

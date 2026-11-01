@@ -169,28 +169,28 @@ const CITY = {
 };
 // each stop: city, check-in day, check-out day (December), how you get there, main activity id
 const PLANS = {
-  A: { note: "Every stop is 2 or 3 nights. The 3-night stops (marked “3 nights?”) are the ones to agree with Tom; any of them can swap a night with a 2-night stop.",
+  A: { note: "Sydney is a 1-night stopover on arrival; every other stop is 2 or 3 nights. The 3-night stops (marked “3 nights?”) are the ones to agree with Tom; any of them can swap a night with a 2-night stop.",
     stops: [
-      { c: "syd", a: 2, b: 5, go: ["land", "Arrive SYD Wed 2 Dec"], main: "syd-harbour" },
-      { c: "hob", a: 5, b: 7, go: ["fly", "SYD → HBA, Sat 5 Dec"], main: "hob-mona" },
-      { c: "air", a: 7, b: 10, go: ["fly", "HBA → Proserpine (PPP), Mon 7 Dec, one connection"], main: "air-sail" },
-      { c: "noo", a: 10, b: 12, go: ["fly", "PPP → Brisbane or Sunshine Coast, Thu 10 Dec. Pick up one-way rental"], main: "noo-kart" },
+      { c: "syd", a: 2, b: 3, go: ["land", "Arrive SYD Wed 2 Dec"], main: "syd-harbour" },
+      { c: "hob", a: 3, b: 6, go: ["fly", "SYD → HBA, Thu 3 Dec"], main: "hob-mona" },
+      { c: "air", a: 6, b: 9, go: ["fly", "HBA → Proserpine (PPP), Sun 6 Dec, one connection"], main: "air-sail" },
+      { c: "noo", a: 9, b: 12, go: ["fly", "PPP → Brisbane or Sunshine Coast, Wed 9 Dec. Pick up one-way rental"], main: "noo-kart" },
       { c: "gc",  a: 12, b: 15, go: ["drive", "Noosa → Gold Coast, about 2 h"], main: "gc-spilt" },
       { c: "byr", a: 15, b: 17, go: ["drive", "Gold Coast → Byron, about 1 h"], main: "byr-surf" },
       { c: "ps",  a: 17, b: 19, go: ["drive", "Byron → Port Stephens, about 6½ h"], main: "ps-buggy" },
       { c: "syd", a: 19, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
-  B: { note: "Adds 2 nights in the Southern Highlands for the Porsche Club NSW party (Sun 6 Dec). Only worth it if they say non-members can come. Airlie and Gold Coast lose a night each compared with Plan A.",
+  B: { note: "Adds 2 nights in the Southern Highlands for the Porsche Club NSW party (Sun 6 Dec). Only worth it if they say non-members can come. Hobart and Noosa get 2 nights instead of 3.",
     stops: [
-      { c: "syd", a: 2, b: 5, go: ["land", "Arrive SYD Wed 2 Dec"], main: "syd-harbour" },
-      { c: "bow", a: 5, b: 7, go: ["drive", "Sydney → Bowral, about 1½ h, Sat 5 Dec"], main: "bow-porsche" },
-      { c: "hob", a: 7, b: 9, go: ["fly", "Drive back to SYD, fly SYD → HBA Mon 7 Dec"], main: "hob-mona" },
-      { c: "air", a: 9, b: 11, go: ["fly", "HBA → Proserpine (PPP), Wed 9 Dec, one connection"], main: "air-sail" },
-      { c: "noo", a: 11, b: 13, go: ["fly", "PPP → Brisbane or Sunshine Coast, Fri 11 Dec. Pick up one-way rental"], main: "noo-kart" },
-      { c: "gc",  a: 13, b: 16, go: ["drive", "Noosa → Gold Coast on festival morning, about 2 h"], main: "gc-spilt" },
-      { c: "byr", a: 16, b: 18, go: ["drive", "Gold Coast → Byron, about 1 h"], main: "byr-surf" },
-      { c: "ps",  a: 18, b: 20, go: ["drive", "Byron → Port Stephens, about 6½ h"], main: "ps-buggy" },
-      { c: "syd", a: 20, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
+      { c: "syd", a: 2, b: 3, go: ["land", "Arrive SYD Wed 2 Dec"], main: "syd-harbour" },
+      { c: "hob", a: 3, b: 5, go: ["fly", "SYD → HBA, Thu 3 Dec"], main: "hob-mona" },
+      { c: "bow", a: 5, b: 7, go: ["fly", "HBA → SYD Sat 5 Dec, then 1½ h drive to Bowral"], main: "bow-porsche" },
+      { c: "air", a: 7, b: 10, go: ["fly", "Drive back to SYD, fly SYD → Proserpine (PPP) Mon 7 Dec"], main: "air-sail" },
+      { c: "noo", a: 10, b: 12, go: ["fly", "PPP → Brisbane or Sunshine Coast, Thu 10 Dec. Pick up one-way rental"], main: "noo-kart" },
+      { c: "gc",  a: 12, b: 15, go: ["drive", "Noosa → Gold Coast, about 2 h"], main: "gc-spilt" },
+      { c: "byr", a: 15, b: 17, go: ["drive", "Gold Coast → Byron, about 1 h"], main: "byr-surf" },
+      { c: "ps",  a: 17, b: 19, go: ["drive", "Byron → Port Stephens, about 6½ h"], main: "ps-buggy" },
+      { c: "syd", a: 19, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
 };
 const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", out: "Outdoors", culture: "Food & culture" };
@@ -332,7 +332,7 @@ function itinHTML() {
     return `<div class="stop${on ? " on" : ""}" data-i="${i}" tabindex="0" role="button" aria-expanded="${on}">
       <div class="badge">${i + 1}</div>
       <div class="body">
-        <div class="top"><h3>${CITY[s.c].name}</h3><span class="when">${day(s.a)} – ${day(s.b)} · ${n} nights${n === 3 ? '<span class="flex">3 nights?</span>' : ""}</span></div>
+        <div class="top"><h3>${CITY[s.c].name}</h3><span class="when">${day(s.a)} – ${day(s.b)} · ${n} night${n === 1 ? "" : "s"}${n === 3 ? '<span class="flex">3 nights?</span>' : ""}</span></div>
         <div class="travel"><span class="mode ${s.go[0]}">${label}</span><span>${esc(s.go[1])}</span></div>
         <div class="mainact"><span class="star">Main</span><span>${esc(main.t)}</span></div>
         ${on ? opts : `<div class="more">+ ${others.length} more options · click to open</div>`}
@@ -400,9 +400,11 @@ function renderMap() {
   for (let i = 1; i < S.length; i++) {
     const from = S[i - 1].c, to = S[i].c;
     if (S[i].go[0] === "fly") {
-      const ff = from === "bow" ? "syd" : from;
+      // Bowral has no airport: drive to/from Sydney around the flight
+      const ff = from === "bow" ? "syd" : from, tt = to === "bow" ? "syd" : to;
       if (ff !== from) L.polyline([ll(from), ll("syd")], road).addTo(layer);
-      L.polyline(arc(ll(ff), ll(to)), fly).addTo(layer);
+      if (tt !== to) L.polyline([ll("syd"), ll(to)], road).addTo(layer);
+      L.polyline(arc(ll(ff), ll(tt)), fly).addTo(layer);
     } else L.polyline([ll(from), ll(to)], road).addTo(layer);
   }
   const groups = {};
