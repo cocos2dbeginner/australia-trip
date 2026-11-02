@@ -201,7 +201,7 @@ const PLANS = {
       { c: "syd", a: 19, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
 };
-const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", out: "Outdoors", culture: "Food & culture" };
+const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", golf: "Golf", out: "Outdoors", culture: "Food & culture" };
 // days: list of December dates it happens (null = any day). wish: on the original wishlist. check: needs confirming.
 const ACTS = [
   // Sydney
@@ -266,6 +266,17 @@ const ACTS = [
   { id: "ps-dolphins", c: "ps", cat: "out", t: "Dolphin cruise from Nelson Bay", n: "", days: null },
   { id: "ps-carshow", c: "ps", cat: "cars", t: "Maddie Hill Car, Truck & Bike Show (10th year)", n: "Newcastle Kart Racing Club, 45 min from Nelson Bay. Charity show.", days: [13], check: 1 },
   { id: "ps-hunter", c: "ps", cat: "culture", t: "Hunter Valley wine day", n: "1 h inland.", days: null },
+  // Golf
+  { id: "syd-golf", c: "syd", cat: "golf", t: "Moore Park Golf (public course + driving range)", n: "10 min from the CBD, open to anyone, floodlit range at night.", days: null, q: "Moore Park Golf Sydney" },
+  { id: "syd-golf2", c: "syd", cat: "golf", t: "The Coast Golf Club, Little Bay", n: "Clifftop holes over the Pacific; visitors welcome on most days.", days: null, q: "The Coast Golf Club Little Bay" },
+  { id: "bow-golf", c: "bow", cat: "golf", t: "Bowral Golf Club", n: "Southern Highlands course, visitors welcome.", days: null, q: "Bowral Golf Club" },
+  { id: "hob-golf", c: "hob", cat: "golf", t: "Tasmania Golf Club, Barilla Bay", n: "Waterfront course next to Hobart airport, takes visitors.", days: null, q: "Tasmania Golf Club Barilla Bay" },
+  { id: "air-golf", c: "air", cat: "golf", t: "Hamilton Island Golf Club", n: "Whole course on its own island (Dent Island), ferry from Hamilton Island. Bucket-list round; book ahead.", days: null, q: "Hamilton Island Golf Club" },
+  { id: "noo-golf", c: "noo", cat: "golf", t: "Noosa Springs Golf & Spa", n: "Resort course in Noosa Heads, open to visitors.", days: null, q: "Noosa Springs Golf" },
+  { id: "gc-golf", c: "gc", cat: "golf", t: "RACV Royal Pines Resort", n: "27 holes, hosts the Australian PGA. Public tee times.", days: null, q: "RACV Royal Pines Resort Golf" },
+  { id: "gc-golf2", c: "gc", cat: "golf", t: "Sanctuary Cove, The Palms course", n: "The resort course that takes visitors (The Pines is members only).", days: null, q: "Sanctuary Cove Golf The Palms" },
+  { id: "byr-golf", c: "byr", cat: "golf", t: "Byron Bay Golf Club", n: "Relaxed 18 holes in town.", days: null, q: "Byron Bay Golf Club" },
+  { id: "ps-golf", c: "ps", cat: "golf", t: "Horizons Golf Resort, Salamander Bay", n: "Greg Norman-designed course in Port Stephens.", days: null, q: "Horizons Golf Resort Salamander Bay" },
 ];
 const QMAP = {"syd-harbour": "BridgeClimb Sydney", "syd-clubs": "Ivy Pool Club Sydney", "syd-mos": "The Domain Sydney", "syd-shannons": "Shannons Sydney Silverwater", "syd-forby": "Sydney Dragway", "syd-macchiato": "Northern Beaches Sydney", "syd-skydive": "Skydive Sydney Wollongong", "syd-bondi": "Bondi to Coogee Coastal Walk", "syd-carols": "The Domain Sydney", "bow-porsche": "Peppers Craigieburn Bowral", "bow-bathurst": "Mount Panorama Circuit Bathurst", "bow-falls": "Fitzroy Falls", "hob-mona": "MONA Museum of Old and New Art", "hob-salamanca": "Salamanca Market Hobart", "hob-kunanyi": "kunanyi Mount Wellington Descent bike", "hob-bruny": "Bruny Island", "hob-carshow": "King Street Oval Campbell Town Tasmania", "hob-taste": "Princes Wharf 1 Hobart", "air-sail": "Whitehaven Beach", "air-skydive": "Skydive Airlie Beach", "air-heart": "Heart Reef scenic flight Airlie Beach", "air-jetski": "Whitsunday Jetski Tours Airlie Beach", "air-markets": "Airlie Beach Markets", "air-bars": "Airlie Beach Esplanade bars", "noo-kart": "Big Kart Track Landsborough", "noo-kgari": "Kgari Fraser Island", "noo-zoo": "Australia Zoo", "noo-np": "Noosa National Park", "noo-market": "Pomona Queensland", "gc-spilt": "Gold Coast Sports Precinct Carrara", "gc-parks": "Warner Bros. Movie World", "gc-dirt": "dirt bike tours Gold Coast hinterland", "gc-kart": "Kingston Park Raceway", "gc-jet": "Paradise Jet Boating Gold Coast", "gc-clubs": "Orchid Avenue Surfers Paradise", "gc-porsche": "Porsche Centre Gold Coast", "gc-jcc": "Cafe Elle Geebung", "gc-shannons": "Shannons Brisbane Eagle Farm", "byr-surf": "Cape Byron Lighthouse", "byr-beachhotel": "Beach Hotel Byron Bay", "byr-dizzee": "Beach Hotel Byron Bay", "byr-skydive": "Skydive Byron Bay", "byr-market": "Byron Bay Community Market", "byr-kayak": "Go Sea Kayak Byron Bay", "ps-buggy": "Stockton Beach Sand Dunes quad bike tours", "ps-sandboard": "Sand Dune Adventures Port Stephens", "ps-dolphins": "Nelson Bay dolphin watching cruise", "ps-carshow": "Newcastle Kart Racing Club", "ps-hunter": "Hunter Valley wineries Pokolbin"};
 const NOT_FOUND = "No December 2026 race events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
