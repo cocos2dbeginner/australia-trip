@@ -49,6 +49,9 @@ button:focus-visible, a:focus-visible, .stop:focus-visible { outline: 2px solid 
 .legend .lf { border-color: var(--flight); border-top-style: dashed; }
 .legend .lr { border-color: var(--road); }
 .map { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 78vh; border-radius: 14px; overflow: hidden; background: var(--ocean); border: 1px solid var(--line); z-index: 0; }
+#gbox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.chip.show { cursor: pointer; font: inherit; font-family: var(--mono); font-size: 11px; background: none; color: var(--road); border: 1px solid var(--line); }
+.chip.show:hover { border-color: var(--road); }
 .leaflet-container { font-family: var(--body); background: var(--ocean); }
 .pinwrap { display: flex; align-items: center; gap: 6px; white-space: nowrap; pointer-events: auto; }
 .pinwrap.l { flex-direction: row-reverse; }
@@ -139,8 +142,13 @@ a { color: var(--flight); text-underline-offset: 3px; }
         </div>
         <div class="legend"><span><i class="lf"></i>Flight</span><span><i class="lr"></i>Drive</span></div>
       </div>
+      <div class="seg" role="group" aria-label="Map type">
+        <button id="m-route" type="button" aria-pressed="true">Route map</button>
+        <button id="m-google" type="button" aria-pressed="false">Google Maps</button>
+      </div>
       <div class="map" id="mapbox" role="region" aria-label="Trip map"></div>
-      <div class="hint">Drag and zoom freely. Click a pin or a city to see everything on there.</div>
+      <div class="map" id="gbox" hidden><iframe id="gmap" title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+      <div class="hint" id="maphint">Drag and zoom freely. Click a pin or a city to see everything on there.</div>
       <div class="maplinks" id="maplinks"></div>
     </div>
 
@@ -287,7 +295,7 @@ function itemHTML(a, showCity) {
   return `<div class="item"><span class="t"><a href="${gm}" target="_blank" rel="noopener" title="Open in Google Maps (reviews, photos)">${esc(a.t)}</a>${showCity ? ` <span class="when">· ${CITY[a.c].name}</span>` : ""}</span>
     <span class="meta"><span class="chip ${st.k}">${st.txt}</span></span>
     <span class="n">${esc(a.n)}${a.check ? " <em>Confirm before booking.</em>" : ""}</span>
-    <span class="meta" style="grid-column:1/-1;justify-content:start"><span class="chip cat">${CATS[a.cat]}</span>${a.wish ? '<span class="chip wish">wishlist</span>' : ""}<a class="chip link" href="${gm}" target="_blank" rel="noopener">Google Maps ↗</a>${a.url ? `<a class="chip link" href="${a.url}" target="_blank" rel="noopener">Book ↗</a>` : ""}</span></div>`;
+    <span class="meta" style="grid-column:1/-1;justify-content:start"><span class="chip cat">${CATS[a.cat]}</span>${a.wish ? '<span class="chip wish">wishlist</span>' : ""}<button class="chip show" type="button" data-q="${esc(q)}">Show on map</button><a class="chip link" href="${gm}" target="_blank" rel="noopener">Google Maps ↗</a>${a.url ? `<a class="chip link" href="${a.url}" target="_blank" rel="noopener">Book ↗</a>` : ""}</span></div>`;
 }
 
 /* ---------- header ---------- */
@@ -436,6 +444,7 @@ function select(i, fromList) {
   if (tab !== "itin") { tab = "itin"; save(); }
   renderPanel(); renderMap();
   if (!fromList) { /* pin click: keep the map where the user put it */ } else if (view === "stop") moveCamera(true);
+  if (mapType === "google") { const c = CITY[stops()[sel].c]; showGoogle(`${c.name}, Australia`, 12); }
   const card = document.querySelector(`.stop[data-i="${i}"]`);
   if (card && !fromList) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
@@ -451,7 +460,40 @@ function setPlan(p) {
 document.getElementById("p-A").addEventListener("click", () => setPlan("A"));
 document.getElementById("p-B").addEventListener("click", () => setPlan("B"));
 ["itin", "all", "cars"].forEach(t => document.getElementById("t-" + t).addEventListener("click", () => { tab = t; save(); renderPanel(); }));
-const setView = v => { view = v; renderMap(); moveCamera(true); };
+/* Google Maps mode: keyless embed, fully interactive (drag, +/−, ctrl/⌘-scroll to zoom) */
+const gbox = document.getElementById("gbox"), gmap = document.getElementById("gmap");
+let mapType = "route";
+function showGoogle(q, z) {
+  const src = `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=${z}&hl=en&output=embed`;
+  if (gmap.src !== src) gmap.src = src;
+}
+function googleForView() {
+  if (view === "east") showGoogle("Brisbane QLD", 6);
+  else if (view === "all") showGoogle("Australia", 4);
+  else { const c = CITY[stops()[sel].c]; showGoogle(`${c.name}, Australia`, 12); }
+}
+function setMapType(t, q) {
+  mapType = t;
+  box.hidden = t !== "route"; gbox.hidden = t !== "google";
+  document.getElementById("m-route").setAttribute("aria-pressed", t === "route");
+  document.getElementById("m-google").setAttribute("aria-pressed", t === "google");
+  document.querySelector(".legend").style.visibility = t === "route" ? "visible" : "hidden";
+  document.getElementById("maphint").textContent = t === "route"
+    ? "Drag and zoom freely. Click a pin or a city to see everything on there."
+    : "Real Google Maps: drag, use + / −, or hold Ctrl (⌘ on Mac) and scroll to zoom. Click a place for reviews. Our route lines show only on the route map.";
+  if (t === "google") { if (q) showGoogle(q, 15); else googleForView(); }
+  else lmap.invalidateSize();
+}
+document.getElementById("m-route").addEventListener("click", () => setMapType("route"));
+document.getElementById("m-google").addEventListener("click", () => setMapType("google"));
+document.getElementById("view").addEventListener("click", e => {
+  const b = e.target.closest(".chip.show");
+  if (!b) return;
+  e.stopPropagation();
+  setMapType("google", b.dataset.q);
+  document.querySelector(".mapcard").scrollIntoView({ block: "nearest", behavior: "smooth" });
+}, true);
+const setView = v => { view = v; if (mapType === "google") { googleForView(); } renderMap(); moveCamera(true); };
 ["all", "east", "stop"].forEach(v => document.getElementById("v-" + v).addEventListener("click", () => setView(v)));
 document.getElementById("view").addEventListener("keydown", e => { const s = e.target.closest(".stop"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); s.click(); } });
 
