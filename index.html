@@ -127,6 +127,13 @@ a:hover { color: var(--accent-hover); }
 .callout b { color: var(--fg); font-weight: 600; }
 .email { font-size: 13px; user-select: all; color: var(--fg); }
 .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+@media (max-width: 560px) {
+  .stop { grid-template-columns: 28px minmax(0, 1fr); gap: 4px 10px; padding: 16px; }
+  .badge { width: 28px; height: 28px; font-size: 12px; }
+  .stop h3 { font-size: 20px; }
+  .group { padding: 12px 16px; }
+  .item .meta:first-of-type { justify-content: start; }
+}
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 </style>
 </head><body>
