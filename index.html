@@ -448,7 +448,8 @@ const QMAP = {"syd-harbour": "BridgeClimb Sydney", "syd-clubs": "Ivy Pool Club S
 const NOT_FOUND = "No December 2026 race events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
 
 /* ---------- state ---------- */
-let openStop = true;
+let openStop = true, groupBy = "city";
+try { const g = localStorage.getItem("trip-group"); if (g === "type" || g === "city") groupBy = g; } catch (e) {}
 let plan = "A", sel = 4, tab = "itin", cat = "all", onlyIn = false;
 try { const s = JSON.parse(localStorage.getItem("trip-ui") || "{}"); if (s.plan in PLANS) plan = s.plan; if (s.tab) tab = s.tab; } catch (e) {}
 const save = () => { try { localStorage.setItem("trip-ui", JSON.stringify({ plan, tab })); } catch (e) {} };
@@ -505,6 +506,7 @@ function renderPanel() {
   else v.innerHTML = carsHTML();
   v.querySelectorAll(".stop").forEach(el => el.addEventListener("click", e => { if (e.target.closest(".opts")) return; select(+el.dataset.i === sel ? -1 : +el.dataset.i, true); }));
   v.querySelectorAll("[data-cat]").forEach(el => el.addEventListener("click", () => { cat = el.dataset.cat; renderPanel(); }));
+  v.querySelectorAll("[data-group]").forEach(el => el.addEventListener("click", () => { groupBy = el.dataset.group; try { localStorage.setItem("trip-group", groupBy); } catch (e) {} renderPanel(); }));
 }
 
 function travelShort(s, i) {
@@ -546,7 +548,15 @@ function filterBar() {
 function allHTML() {
   const seen = new Set();
   const order = stops().map(s => s.c).filter(c => !seen.has(c) && seen.add(c));
-  let html = filterBar();
+  let html = `<div class="seg" role="group" aria-label="Group activities"><button type="button" data-group="city" aria-pressed="${groupBy === "city"}">By city</button><button type="button" data-group="type" aria-pressed="${groupBy === "type"}">By activity</button></div>`;
+  if (groupBy === "type") {
+    Object.entries(CATS).forEach(([k, label]) => {
+      const list = ACTS.filter(a => a.cat === k && order.includes(a.c)).sort((x, y) => order.indexOf(x.c) - order.indexOf(y.c));
+      if (list.length) html += `<section class="group"><h3>${label}<small>${list.length}</small></h3>${list.map(a => itemHTML(a, true)).join("")}</section>`;
+    });
+    return `<div class="list">${html}</div>`;
+  }
+  html += filterBar();
   order.forEach(c => {
     const list = ACTS.filter(a => a.c === c && (cat === "all" || a.cat === cat));
     if (!list.length) return;
