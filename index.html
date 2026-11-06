@@ -362,7 +362,7 @@ const PLANS = {
       { c: "syd", a: 19, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
 };
-const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", golf: "Golf", out: "Outdoors", culture: "Food & culture" };
+const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", golf: "Golf", surf: "Surf", out: "Outdoors", culture: "Food & culture" };
 // days: list of December dates it happens (null = any day). wish: on the original wishlist. check: needs confirming.
 const ACTS = [
   // Sydney
@@ -415,7 +415,7 @@ const ACTS = [
   { id: "gc-jcc", c: "gc", cat: "cars", t: "JUST CARS & COFFEE Brisbane", n: "Monthly weekend meet at Café Elle, Geebung, done by 9am. About 1¼ h from the Gold Coast.", days: null, check: 1 },
   { id: "gc-shannons", c: "gc", cat: "cars", t: "Shannons Cars & Coffee Brisbane", n: "Shannons Eagle Farm has run a December edition; 2026 date not confirmed.", days: null, check: 1 },
   // Byron
-  { id: "byr-surf", c: "byr", cat: "out", t: "Surf lesson + Cape Byron lighthouse walk", n: "", days: null },
+  { id: "byr-surf", c: "byr", cat: "surf", t: "Surf lesson at The Pass", n: "Byron’s classic beginner wave. Let’s Go Surfing and Black Dog Surfing run daily lessons. Walk up to Cape Byron lighthouse after.", days: null, q: "Let's Go Surfing Byron Bay" },
   { id: "byr-beachhotel", c: "byr", cat: "party", t: "Beach Hotel and Byron bars", n: "Live music most nights.", days: null },
   { id: "byr-dizzee", c: "byr", cat: "party", t: "Dizzee Rascal at The Beach Hotel", n: "Sunday show, before you arrive.", days: [6], check: 1 },
   { id: "byr-skydive", c: "byr", cat: "thrill", t: "Skydive Byron Bay", n: "Second chance at a jump if Airlie doesn’t happen.", days: null },
@@ -427,6 +427,11 @@ const ACTS = [
   { id: "ps-dolphins", c: "ps", cat: "out", t: "Dolphin cruise from Nelson Bay", n: "", days: null },
   { id: "ps-carshow", c: "ps", cat: "cars", t: "Maddie Hill Car, Truck & Bike Show (10th year)", n: "Newcastle Kart Racing Club, 45 min from Nelson Bay. Charity show.", days: [13], check: 1 },
   { id: "ps-hunter", c: "ps", cat: "culture", t: "Hunter Valley wine day", n: "1 h inland.", days: null },
+  // Surf lessons
+  { id: "syd-surf", c: "syd", cat: "surf", t: "Surf lesson at Bondi", n: "2-hour beginner group lesson with Let’s Go Surfing, boards and wetsuits included.", days: null, q: "Let's Go Surfing Bondi" },
+  { id: "noo-surf", c: "noo", cat: "surf", t: "Surf lesson at Noosa", n: "Gentle point-break waves at Noosa Heads, ideal for a first lesson. Merrick’s Learn to Surf runs daily groups.", days: null, q: "Merrick's Learn to Surf Noosa" },
+  { id: "gc-surf", c: "gc", cat: "surf", t: "Surf lesson at Surfers Paradise", n: "Beginner lessons on the main beach with Get Wet Surf School.", days: null, q: "Get Wet Surf School Surfers Paradise" },
+  { id: "ps-surf", c: "ps", cat: "surf", t: "Surf lesson at One Mile Beach", n: "Quiet beach near Anna Bay with local surf schools; good for a second session after Byron.", days: null, q: "Port Stephens Surf School One Mile Beach" },
   // Golf
   { id: "syd-golf", c: "syd", cat: "golf", t: "Moore Park Golf (public course + driving range)", n: "10 min from the CBD, open to anyone, floodlit range at night.", days: null, q: "Moore Park Golf Sydney" },
   { id: "syd-golf2", c: "syd", cat: "golf", t: "The Coast Golf Club, Little Bay", n: "Clifftop holes over the Pacific; visitors welcome on most days.", days: null, q: "The Coast Golf Club Little Bay" },
