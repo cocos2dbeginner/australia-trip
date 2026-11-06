@@ -362,12 +362,12 @@ const PLANS = {
       { c: "syd", a: 19, b: 22, go: ["drive", "Port Stephens → Sydney, about 2½ h. Drop rental"], main: "syd-clubs" },
     ] },
 };
-const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Music & nights", theme: "Theme parks", golf: "Golf", surf: "Surf", out: "Outdoors", culture: "Food & culture" };
+const CATS = { track: "Race & drift", cars: "Car shows & meets", thrill: "Thrills", party: "Party & nightlife", theme: "Theme parks", golf: "Golf", surf: "Surf", out: "Outdoors", culture: "Food & culture" };
 // days: list of December dates it happens (null = any day). wish: on the original wishlist. check: needs confirming.
 const ACTS = [
   // Sydney
   { id: "syd-harbour", c: "syd", cat: "out", t: "Harbour day: BridgeClimb + ferry to Manly", n: "Easy first-day plan while you get over the flight.", days: null },
-  { id: "syd-clubs", c: "syd", cat: "party", wish: 1, t: "Last-nights party run: Ivy Pool Club, Kings Cross, Oxford St", n: "Merivale’s Ivy for the Friday/Saturday pool party, then Kings Cross or Oxford St.", days: null },
+  { id: "syd-clubs", c: "syd", cat: "party", wish: 1, t: "Last nights out: Ivy, Marquee or Club 77", n: "Sat 19 Dec is the big night out; Sunday and Monday are quieter.", days: null },
   { id: "syd-mos", c: "syd", cat: "party", t: "Ministry of Sound Summer Dance Festival", n: "The Domain. Seen on a listing site, not the official one yet. Catching it means flying to Hobart a day later.", days: [5], check: 1 },
   { id: "syd-shannons", c: "syd", cat: "cars", t: "Shannons Cars & Coffee, Sydney", n: "First Sunday of each month, 8–11am at the Shannons showroom. Check it runs in December.", days: [6], check: 1 },
   { id: "syd-forby", c: "syd", cat: "cars", t: "FORBYNATS 2: 4x4 show and drags", n: "Sydney Dragway, Eastern Creek. 4x4 and off-road crowd rather than a classic car show.", days: [5], check: 1 },
@@ -394,7 +394,6 @@ const ACTS = [
   { id: "air-heart", c: "air", cat: "out", t: "Heart Reef scenic flight", n: "Helicopter or seaplane over the reef.", days: null },
   { id: "air-jetski", c: "air", cat: "thrill", t: "Jet ski tour around the islands", n: "About 2 h guided.", days: null },
   { id: "air-markets", c: "air", cat: "culture", t: "Airlie Beach foreshore markets", n: "Saturday mornings.", days: [5, 12, 19] },
-  { id: "air-bars", c: "air", cat: "party", wish: 1, t: "Airlie main-street bars", n: "Small but lively strip, backpacker crowd.", days: null },
   // Noosa
   { id: "noo-kart", c: "noo", cat: "thrill", wish: 1, t: "Big Kart Track, Landsborough", n: "Long outdoor track, arrive and drive. 30 min from Noosa.", days: null },
   { id: "noo-kgari", c: "noo", cat: "thrill", t: "K’gari (Fraser Island) 4WD beach day", n: "Beach-highway driving tour from Noosa or Rainbow Beach.", days: null },
@@ -410,7 +409,7 @@ const ACTS = [
   { id: "gc-v8", c: "gc", cat: "track", t: "Drive a V8 race car, Queensland Raceway", n: "5 laps in a Ford or Holden with an instructor, about $240–270.", days: null, q: "Queensland Raceway Willowbank", url: "https://memberbenefits.experienceoz.com.au/en/qld-other/v8-race-car-driving-experience-5-laps" },
   { id: "gc-kart", c: "gc", cat: "thrill", t: "Kingston Park Raceway outdoor karts", n: "Fast outdoor karts, 30 min north of Surfers.", days: null },
   { id: "gc-jet", c: "gc", cat: "thrill", t: "Jet boat + parasail on the Broadwater", n: "", days: null },
-  { id: "gc-clubs", c: "gc", cat: "party", wish: 1, t: "Surfers Paradise clubs (Orchid Ave)", n: "", days: null },
+  { id: "gc-clubs", c: "gc", cat: "party", wish: 1, t: "Orchid Ave clubs: Cocktails, The Bedroom", n: "The main club strip in Surfers, 9pm–3am. Dress codes are strict, so no thongs or singlets.", days: null, q: "Orchid Avenue Surfers Paradise" },
   { id: "gc-porsche", c: "gc", cat: "cars", t: "Porsche Centre Gold Coast Cars n Coffee", n: "Run with Porsche Club QLD on a Saturday morning. December date not published.", days: null, check: 1 },
   { id: "gc-jcc", c: "gc", cat: "cars", t: "JUST CARS & COFFEE Brisbane", n: "Monthly weekend meet at Café Elle, Geebung, done by 9am. About 1¼ h from the Gold Coast.", days: null, check: 1 },
   { id: "gc-shannons", c: "gc", cat: "cars", t: "Shannons Cars & Coffee Brisbane", n: "Shannons Eagle Farm has run a December edition; 2026 date not confirmed.", days: null, check: 1 },
@@ -432,6 +431,23 @@ const ACTS = [
   { id: "noo-surf", c: "noo", cat: "surf", t: "Surf lesson at Noosa", n: "Gentle point-break waves at Noosa Heads, ideal for a first lesson. Merrick’s Learn to Surf runs daily groups.", days: null, q: "Merrick's Learn to Surf Noosa" },
   { id: "gc-surf", c: "gc", cat: "surf", t: "Surf lesson at Surfers Paradise", n: "Beginner lessons on the main beach with Get Wet Surf School.", days: null, q: "Get Wet Surf School Surfers Paradise" },
   { id: "ps-surf", c: "ps", cat: "surf", t: "Surf lesson at One Mile Beach", n: "Quiet beach near Anna Bay with local surf schools; good for a second session after Byron.", days: null, q: "Port Stephens Surf School One Mile Beach" },
+  // Nightlife
+  { id: "syd-ivy", c: "syd", cat: "party", t: "Ivy, George St", n: "Sydney’s biggest superclub, several rooms. Ivy Pool Club on the roof for day parties. Fri–Sat.", days: [4, 5, 11, 12, 18, 19], q: "Ivy Sydney George Street" },
+  { id: "syd-marquee", c: "syd", cat: "party", t: "Marquee at The Star", n: "Big-name international DJs, sister club of Marquee Las Vegas and New York. Check the lineup for 19–21 Dec.", days: null, q: "Marquee Sydney The Star" },
+  { id: "syd-home", c: "syd", cat: "party", t: "Home The Venue, Darling Harbour", n: "Three levels of dance floors right on the harbour.", days: null, q: "Home The Venue Darling Harbour" },
+  { id: "syd-club77", c: "syd", cat: "party", t: "Club 77, Darlinghurst", n: "Small underground club for house and techno, late finish.", days: null, q: "Club 77 Darlinghurst" },
+  { id: "syd-dizzee", c: "syd", cat: "party", t: "Dizzee Rascal + Example, Opera House forecourt", n: "Outdoor “We Want Bass” show with Example, ArrDee and Swaglord Savannah. You’re in Hobart that night on Plan A.", days: [5], check: 1, q: "Sydney Opera House Forecourt" },
+  { id: "hob-poobah", c: "hob", cat: "party", t: "The Grand Poobah", n: "Hobart’s most reliable late dance floor. Small city: most places close 2–4am.", days: null, q: "The Grand Poobah Hobart" },
+  { id: "hob-muse", c: "hob", cat: "party", t: "Muse, Franklin Wharf", n: "Waterfront DJ bar; gets going after 11pm. Botanica Bar in Salamanca is next door for late drinks.", days: null, q: "Muse Franklin Wharf Hobart" },
+  { id: "air-mama", c: "air", cat: "party", t: "Mama Africa", n: "Airlie’s main club, zebra-striped dance floor. Open Wed–Sat only, so just Wed 9 Dec on Plan A.", days: [2, 3, 4, 5, 9, 10, 11, 12, 16, 17, 18, 19], q: "Mama Africa Airlie Beach" },
+  { id: "air-paddys", c: "air", cat: "party", t: "Paddy’s Shenanigans + Boom", n: "Irish bar with live music every night; Boom nightclub is upstairs.", days: null, q: "Paddy's Shenanigans Airlie Beach" },
+  { id: "gc-crawl", c: "gc", cat: "party", t: "Wicked Club Crawl, Surfers Paradise", n: "Guided crawl through several clubs with entry included. Fridays and Saturdays.", days: [4, 5, 11, 12, 18, 19], q: "Wicked Club Crawl Surfers Paradise" },
+  { id: "gc-elsewhere", c: "gc", cat: "party", t: "Elsewhere, Cavill Ave", n: "Locals’ favourite, more alternative music than the Orchid Ave clubs.", days: null, q: "Elsewhere Bar Surfers Paradise" },
+  { id: "gc-sincity", c: "gc", cat: "party", t: "SinCity", n: "Latin house and techno, Thu–Sat.", days: [3, 4, 5, 10, 11, 12, 17, 18, 19], q: "SinCity Nightclub Surfers Paradise" },
+  { id: "gc-platinum", c: "gc", cat: "party", t: "Platinum, Broadbeach", n: "Open until 5am, next to The Star Gold Coast.", days: null, q: "Platinum Nightclub Broadbeach" },
+  { id: "gc-dijon", c: "gc", cat: "party", t: "Dijon at Fortitude Music Hall, Brisbane", n: "Concert rather than club night; Fortitude Valley next door is Brisbane’s club district. About 1 h from the Gold Coast.", days: [15], check: 1, q: "Fortitude Music Hall Brisbane" },
+  { id: "byr-cheeky", c: "byr", cat: "party", t: "Cheeky Monkey’s", n: "Backpacker party bar, dancing on the tables.", days: null, q: "Cheeky Monkey's Byron Bay" },
+  { id: "byr-woodys", c: "byr", cat: "party", t: "Woody’s Surf Shack", n: "Late-night bar and club on Fletcher St.", days: null, q: "Woody's Surf Shack Byron Bay" },
   // Golf
   { id: "syd-golf", c: "syd", cat: "golf", t: "Moore Park Golf (public course + driving range)", n: "10 min from the CBD, open to anyone, floodlit range at night.", days: null, q: "Moore Park Golf Sydney" },
   { id: "syd-golf2", c: "syd", cat: "golf", t: "The Coast Golf Club, Little Bay", n: "Clifftop holes over the Pacific; visitors welcome on most days.", days: null, q: "The Coast Golf Club Little Bay" },
