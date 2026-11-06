@@ -181,6 +181,40 @@ footer .container{display:grid;gap:6px}
   .item .meta{justify-content:start}
   .hero{padding-block:40px 32px}
 }
+/* ---------- simplified rows ---------- */
+.item{display:block;padding:0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;cursor:pointer}
+.item summary::-webkit-details-marker{display:none}
+.item summary::after{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid var(--muted2);border-bottom:1.5px solid var(--muted2);transform:rotate(45deg);margin:-4px 4px 0 0}
+.item[open] summary::after{transform:rotate(225deg);margin-top:4px}
+.item summary .t{font-size:15.5px;font-weight:400;min-width:0}
+.item summary .city{display:block;font:12px var(--mono);color:var(--muted);margin-top:2px}
+.item[open] summary .t{font-weight:500}
+.more-info{padding:0 0 14px;display:grid;gap:10px}
+.more-info p{margin:0;font-size:14.5px;color:var(--ink2);max-width:62ch}
+.links{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:14px}
+.tag{flex:none;font:12px var(--mono);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.tag.in{color:var(--ok);background:var(--ok-bg)}
+.tag.out{color:var(--muted);background:var(--panel)}
+.group .tag.out{background:var(--card)}
+.stop .mainact{font-size:15.5px;color:var(--ink2);font-weight:400}
+.stop.on .mainact{display:none}
+.opts{border-top:0;margin-top:2px}
+.opts .travel{margin:0 0 4px;font:12.5px var(--mono);color:var(--muted)}
+.opts > .item:first-of-type summary .t::before{content:"Main · ";font:500 12px var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.opts h4{margin:18px 0 0}
+.later{margin-top:14px}
+.later>summary{cursor:pointer;font:12.5px var(--mono);color:var(--muted);padding:8px 0;list-style:none}
+.later>summary::-webkit-details-marker{display:none}
+.later>summary::before{content:"+ "}
+.later[open]>summary::before{content:"– "}
+.filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filters::-webkit-scrollbar{display:none}
+.fchip{white-space:nowrap}
+.group h3{font-size:22px}
+.stop{padding:16px 20px}
+.stop h3{font-size:24px}
 /* ---------- phones and small tablets: one view at a time, bottom nav ---------- */
 .mnav,.peek{display:none}
 @media (max-width:860px){
@@ -233,14 +267,13 @@ footer .container{display:grid;gap:6px}
 </div></header>
 
 <section class="hero"><div class="container">
-  <div class="eyebrow">2–22 December 2026 · in and out of Sydney</div>
-  <h1>Twenty nights down the east coast, plus Tasmania.</h1>
-  <p class="lede">One main thing to aim for in each place, with everything else that’s on nearby. Switch plans to see what each route gains or loses.</p>
+  <div class="eyebrow">Trip plan · draft for Tom</div>
+  <h1>Australia, <span style="white-space:nowrap">2–22 Dec.</span></h1>
   <div class="facts" id="facts"></div>
   <div class="planbar">
     <div class="seg" role="group" aria-label="Route plan">
-      <button id="p-A" type="button">Plan A · no car stop</button>
-      <button id="p-B" type="button">Plan B · + Porsche party</button>
+      <button id="p-A" type="button">Plan A</button>
+      <button id="p-B" type="button">Plan B</button>
     </div>
     <div class="plannote" id="plannote"></div>
   </div>
@@ -271,7 +304,7 @@ footer .container{display:grid;gap:6px}
     <div class="panel">
       <div class="tabs" role="tablist">
         <button role="tab" id="t-itin" type="button">Itinerary</button>
-        <button role="tab" id="t-all" type="button">All activities<span class="count" id="c-all"></span></button>
+        <button role="tab" id="t-all" type="button">Activities<span class="count" id="c-all"></span></button>
         <button role="tab" id="t-cars" type="button">Cars &amp; track<span class="count" id="c-cars"></span></button>
       </div>
       <div id="view"></div>
@@ -410,6 +443,7 @@ const QMAP = {"syd-harbour": "BridgeClimb Sydney", "syd-clubs": "Ivy Pool Club S
 const NOT_FOUND = "No December 2026 race events found at Sydney Motorsport Park, Willowbank Raceway, Queensland Raceway, Lakeside Park or Baskerville. The Supercars season finale is in Adelaide (3–6 Dec), off this route.";
 
 /* ---------- state ---------- */
+let openStop = true;
 let plan = "A", sel = 4, tab = "itin", cat = "all", onlyIn = false;
 try { const s = JSON.parse(localStorage.getItem("trip-ui") || "{}"); if (s.plan in PLANS) plan = s.plan; if (s.tab) tab = s.tab; } catch (e) {}
 const save = () => { try { localStorage.setItem("trip-ui", JSON.stringify({ plan, tab })); } catch (e) {} };
@@ -427,96 +461,102 @@ function status(act) {
   return { k: "out", txt: act.days.map(day).join(", ") + " · outside our dates" };
 }
 
+const shortDay = d => `${DOW[(d + 1) % 7]} ${d}`;
+function dateTag(a) {
+  if (!a.days) return "";
+  const visits = stops().filter(s => s.c === a.c);
+  const hit = a.days.filter(d => visits.some(v => d >= v.a && d <= v.b));
+  const ds = (hit.length ? hit : a.days).filter(d => d <= 31).map(shortDay).join(", ") || "late Dec";
+  return `<span class="tag ${hit.length ? "in" : "out"}">${ds} Dec</span>`;
+}
+
+/* one activity: a single line; tap to see the note and links */
 function itemHTML(a, showCity) {
-  const st = status(a);
   const q = a.q || QMAP[a.id] || `${a.t}, ${CITY[a.c].name}`;
   const gm = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-  return `<div class="item"><span class="t"><a href="${gm}" target="_blank" rel="noopener" title="Open in Google Maps (reviews, photos)">${esc(a.t)}</a>${showCity ? ` <span class="when">· ${CITY[a.c].name}</span>` : ""}</span>
-    <span class="meta"><span class="chip ${st.k}">${st.txt}</span></span>
-    <span class="n">${esc(a.n)}${a.check ? " <em>Confirm before booking.</em>" : ""}</span>
-    <span class="meta" style="grid-column:1/-1;justify-content:start"><span class="chip cat">${CATS[a.cat]}</span>${a.wish ? '<span class="chip wish">wishlist</span>' : ""}<button class="chip show" type="button" data-q="${esc(q)}">Show on map</button><a class="chip link" href="${gm}" target="_blank" rel="noopener">Google Maps ↗</a>${a.url ? `<a class="chip link" href="${a.url}" target="_blank" rel="noopener">Book ↗</a>` : ""}</span></div>`;
+  return `<details class="item"><summary><span class="t">${esc(a.t)}${showCity ? `<span class="city">${CITY[a.c].name}</span>` : ""}</span>${dateTag(a)}</summary>
+    <div class="more-info">${a.n ? `<p>${esc(a.n)}${a.check ? " Check the date before booking." : ""}</p>` : ""}
+    <div class="links"><a href="${gm}" target="_blank" rel="noopener">Google Maps ↗</a>${a.url ? `<a href="${a.url}" target="_blank" rel="noopener">Book ↗</a>` : ""}<button class="chip show" type="button" data-q="${esc(q)}">Show on map</button></div></div></details>`;
 }
 
 /* ---------- header ---------- */
 function renderHeader() {
   const S = stops();
-  const flights = S.filter(s => s.go[0] === "fly").length;
   const places = new Set(S.map(s => s.c)).size;
-  const inCars = ACTS.filter(a => a.cat === "cars" && status(a).k === "in").length;
   document.getElementById("facts").innerHTML =
-    `<div><b>20</b>nights</div><div><b>${places}</b>places</div><div><b>${flights}</b>flights</div><div><b>~1,040</b>km coastal drive</div><div><b>13 Dec</b>Spilt Milk</div>`;
-  document.getElementById("plannote").textContent = PLANS[plan].note;
+    `<div><b>20</b>nights</div><div><b>${places}</b>places</div><div><b>13 Dec</b>Spilt Milk</div>`;
+  document.getElementById("plannote").textContent = plan === "A" ? "No car stop." : "Adds Bowral for the Porsche party on 6 Dec.";
   ["A", "B"].forEach(p => document.getElementById("p-" + p).setAttribute("aria-pressed", plan === p));
 }
 
 /* ---------- panel ---------- */
 function renderPanel() {
   ["itin", "all", "cars"].forEach(t => document.getElementById("t-" + t).setAttribute("aria-selected", tab === t));
-  document.getElementById("c-all").textContent = ACTS.length;
-  document.getElementById("c-cars").textContent = ACTS.filter(a => a.cat === "cars" || a.cat === "track").length;
+  document.getElementById("c-all").textContent = "";
+  document.getElementById("c-cars").textContent = "";
   const v = document.getElementById("view");
   if (tab === "itin") v.innerHTML = itinHTML();
   else if (tab === "all") v.innerHTML = allHTML();
   else v.innerHTML = carsHTML();
-  v.querySelectorAll(".stop").forEach(el => el.addEventListener("click", () => { if (+el.dataset.i !== sel) select(+el.dataset.i, true); }));
+  v.querySelectorAll(".stop").forEach(el => el.addEventListener("click", e => { if (e.target.closest(".opts")) return; select(+el.dataset.i === sel ? -1 : +el.dataset.i, true); }));
   v.querySelectorAll("[data-cat]").forEach(el => el.addEventListener("click", () => { cat = el.dataset.cat; renderPanel(); }));
-  v.querySelectorAll("[data-only]").forEach(el => el.addEventListener("click", () => { onlyIn = !onlyIn; renderPanel(); }));
+}
+
+function travelShort(s, i) {
+  if (s.go[0] === "land") return "Arrive";
+  const from = CITY[stops()[i - 1].c].name, hrs = (s.go[1].match(/about ([^,.]+)/) || [])[1];
+  return `${s.go[0] === "fly" ? "Fly" : "Drive"} from ${from}${hrs && s.go[0] === "drive" ? ` · ${hrs}` : ""}`;
 }
 
 function itinHTML() {
   return `<div class="list">` + stops().map((s, i) => {
-    const n = s.b - s.a, on = i === sel;
+    const n = s.b - s.a, on = i === sel && openStop;
     const main = ACTS.find(a => a.id === s.main);
     const others = ACTS.filter(a => a.c === s.c && a.id !== s.main && !(s.c === "syd" && (a.id === "syd-harbour" || a.id === "syd-clubs")));
-    const label = { fly: "Fly", drive: "Drive", land: "Arrive" }[s.go[0]];
     let opts = "";
     if (on) {
-      const byStatus = k => others.filter(a => status(a).k === k);
-      const sect = (h, list) => list.length ? `<h4>${h}</h4>` + list.map(a => itemHTML(a)).join("") : "";
-      opts = `<div class="opts">${itemHTML(main).replace('class="item"', 'class="item" style="border-bottom:1px solid var(--line)"')}
-        ${sect("Happening while we’re there", byStatus("in"))}${sect("Any day", byStatus("any"))}${sect("Other dates (could change the route)", byStatus("out"))}</div>`;
+      const now = others.filter(a => status(a).k === "in"), any = others.filter(a => status(a).k === "any"), later = others.filter(a => status(a).k === "out");
+      opts = `<div class="opts">
+        <p class="travel">${travelShort(s, i)}</p>
+        ${itemHTML(main)}
+        ${now.length ? `<h4>On while we’re there</h4>${now.map(a => itemHTML(a)).join("")}` : ""}
+        ${any.length ? `<h4>Anytime</h4>${any.map(a => itemHTML(a)).join("")}` : ""}
+        ${later.length ? `<details class="later"><summary>${later.length} more on other dates</summary>${later.map(a => itemHTML(a)).join("")}</details>` : ""}</div>`;
     }
     return `<div class="stop${on ? " on" : ""}" data-i="${i}" tabindex="0" role="button" aria-expanded="${on}">
       <div class="badge">${i + 1}</div>
       <div class="body">
-        <div class="top"><h3>${CITY[s.c].name}</h3><span class="when">${day(s.a)} – ${day(s.b)} · ${n} night${n === 1 ? "" : "s"}${n === 3 ? '<span class="flex">3 nights?</span>' : ""}</span></div>
-        <div class="travel"><span class="mode ${s.go[0]}">${label}</span><span>${esc(s.go[1])}</span></div>
-        <div class="mainact"><span class="star">Main</span><span>${esc(main.t)}</span></div>
-        ${on ? opts : `<div class="more">+ ${others.length} more options · click to open</div>`}
+        <div class="top"><h3>${CITY[s.c].name}</h3><span class="when">${s.a}–${s.b} Dec · ${n} night${n === 1 ? "" : "s"}</span></div>
+        <div class="mainact">${esc(main.t)}</div>
+        ${on ? opts : ""}
       </div></div>`;
   }).join("") + `</div>`;
 }
 
 function filterBar() {
   return `<div class="filters"><button class="fchip" type="button" data-cat="all" aria-pressed="${cat === "all"}">All</button>` +
-    Object.entries(CATS).map(([k, l]) => `<button class="fchip" type="button" data-cat="${k}" aria-pressed="${cat === k}">${l}</button>`).join("") +
-    `<button class="fchip" type="button" data-only aria-pressed="${onlyIn}">Only dated events in our dates</button></div>`;
+    Object.entries(CATS).map(([k, l]) => `<button class="fchip" type="button" data-cat="${k}" aria-pressed="${cat === k}">${l}</button>`).join("") + `</div>`;
 }
 
 function allHTML() {
   const seen = new Set();
   const order = stops().map(s => s.c).filter(c => !seen.has(c) && seen.add(c));
-  Object.keys(CITY).forEach(c => { if (!seen.has(c)) order.push(c); });
   let html = filterBar();
-  let total = 0;
   order.forEach(c => {
-    const list = ACTS.filter(a => a.c === c && (cat === "all" || a.cat === cat) && (!onlyIn || status(a).k === "in"));
+    const list = ACTS.filter(a => a.c === c && (cat === "all" || a.cat === cat));
     if (!list.length) return;
-    total += list.length;
     const visits = stops().filter(s => s.c === c);
-    const when = visits.length ? visits.map(v => `${v.a}–${v.b} Dec`).join(" & ") : "not on this plan";
-    html += `<div class="group"><h3>${CITY[c].name}<small>${when}</small></h3>${list.map(a => itemHTML(a)).join("")}</div>`;
+    html += `<section class="group"><h3>${CITY[c].name}<small>${visits.map(v => `${v.a}–${v.b} Dec`).join(" & ")}</small></h3>${list.map(a => itemHTML(a)).join("")}</section>`;
   });
-  if (!total) html += `<div class="empty">Nothing matches. Turn off “Only dated events in our dates” or pick another category.</div>`;
   return `<div class="list">${html}</div>`;
 }
 
 function carsHTML() {
-  const list = ACTS.filter(a => a.cat === "cars" || a.cat === "track").sort((x, y) => (x.days ? x.days[0] : 99) - (y.days ? y.days[0] : 99));
+  const list = ACTS.filter(a => a.cat === "cars" || a.cat === "track");
+  const track = list.filter(a => a.cat === "track"), shows = list.filter(a => a.cat === "cars").sort((x, y) => (x.days ? x.days[0] : 99) - (y.days ? y.days[0] : 99));
   return `<div class="list">
-    <div class="callout"><b>Parking-lot list.</b> Race-car drives, drift schools and car shows along or near the route. Track experiences run on most days, so they can slot in anywhere; the shows and meets are date-bound. None of them is worth bending the whole trip for, but a few line up with our dates. The Porsche Club party is the one Plan B is built around: email <span class="email">social@pcnsw.com.au</span> to check whether non-members can come.</div>
-    <div class="group">${list.map(a => itemHTML(a, true)).join("")}</div>
-    <div class="callout">${NOT_FOUND}</div></div>`;
+    <section class="group"><h3>Drive &amp; drift<small>any day</small></h3>${track.map(a => itemHTML(a, true)).join("")}</section>
+    <section class="group"><h3>Shows &amp; meets<small>by date</small></h3>${shows.map(a => itemHTML(a, true)).join("")}</section></div>`;
 }
 
 /* ---------- map ---------- */
@@ -580,6 +620,8 @@ lmap.on("dragstart", () => { view = "custom"; ["all", "east", "stop"].forEach(v 
 
 /* ---------- actions ---------- */
 function select(i, fromList) {
+  if (i < 0) { openStop = false; renderPanel(); return; }
+  openStop = true;
   sel = i;
   if (tab !== "itin") { tab = "itin"; save(); }
   renderPanel(); renderMap(); renderPeek();
