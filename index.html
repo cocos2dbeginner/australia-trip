@@ -571,7 +571,7 @@ function renderMap() {
      <a href="https://www.google.com/maps/dir/Noosa+Heads+QLD/Surfers+Paradise+QLD/Byron+Bay+NSW/Nelson+Bay+NSW/Sydney+NSW" target="_blank" rel="noopener">Road trip directions in Google Maps</a>`;
 }
 function moveCamera(animate) {
-  const opt = { animate, duration: .8, padding: [24, 24] };
+  const opt = { animate, duration: .8, paddingTopLeft: [24, 24], paddingBottomRight: [110, 24] };
   if (view === "stop") lmap.flyTo(ll(stops()[sel].c), 11, { animate, duration: .8 });
   else lmap.flyToBounds(BOUNDS[view], opt);
 }
@@ -678,6 +678,6 @@ renderAll();
 renderPeek();
 document.body.dataset.m = tab;
 document.querySelectorAll(".mnav button").forEach(b => b.setAttribute("aria-current", b.dataset.m === tab ? "page" : "false"));
-lmap.fitBounds(BOUNDS.all, { padding: [24, 24] });
+lmap.fitBounds(BOUNDS.all, { paddingTopLeft: [24, 24], paddingBottomRight: [110, 24] });
 </script>
 </body></html>
